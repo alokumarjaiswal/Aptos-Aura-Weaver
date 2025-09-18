@@ -30,7 +30,7 @@ interface SuccessState {
 }
 
 function AuraMinterApp() {
-  const { account, connected, connect, disconnect } = useWallet();
+  const { account, connected, connect, disconnect, signAndSubmitTransaction } = useWallet();
   const { addNotification } = useNotifications();
   const [moodSeed, setMoodSeed] = useState('');
   const [transactionCount, setTransactionCount] = useState(0);
@@ -179,13 +179,12 @@ function AuraMinterApp() {
       const description = `Personal aura NFT generated from ${transactionCount} transactions with mood "${moodSeed}"`;
       const uri = "https://placeholder-uri.com"; // TODO: Replace with IPFS URI
       
-      const payload = {
-        function: "0xCAFE::aura_nft::mint_aura",
-        functionArguments: [moodSeed, transactionCount, tokenName, uri],
-        type_arguments: [],
-      };
-
-      console.log('🎨 Minting NFT with payload:', payload);
+      console.log('🎨 Minting NFT with parameters:', {
+        tokenName,
+        moodSeed,
+        transactionCount,
+        uri
+      });
       
       // Add minting started notification
       addNotification({
@@ -196,11 +195,24 @@ function AuraMinterApp() {
         metadata: { nftTokenName: tokenName, actionType: 'mint_start' }
       });
       
-      // Simulate minting process (in real implementation, this would call the smart contract)
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
+      // Execute the actual smart contract transaction using wallet adapter
+      const response = await signAndSubmitTransaction({
+        data: {
+          function: "0x0b65f8046e689981c490d760553a03b9d11775d03d78c141d6a44041c3b12a43::aura_nft::mint_aura",
+          functionArguments: [moodSeed, transactionCount, tokenName, uri],
+        }
+      });
+      console.log('🎨 Transaction submitted:', response.hash);
+      
+      // Wait for transaction to be processed
+      const txResult = await aptos.waitForTransaction({
+        transactionHash: response.hash,
+      });
+      
+      console.log('✅ Transaction confirmed:', txResult);
       
       // Add success notification
-      addNotification(createNotification.nftMinted(tokenName, 'simulated-tx-hash'));
+      addNotification(createNotification.nftMinted(tokenName, response.hash));
       
       // Log detailed information for development
       console.log('✅ NFT Minting Details:', {
@@ -440,7 +452,7 @@ function AuraMinterApp() {
                       </div>
 
                       <p className="mvp-note">
-                        MVP Demo: Check console for minting payload
+                        🎉 Live on Aptos Devnet! Your NFTs will be minted on-chain.
                       </p>
                     </div>
                   )}

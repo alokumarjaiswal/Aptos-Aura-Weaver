@@ -7,6 +7,6 @@ AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir 
 AptosTokenObjects = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-token-objects", rev = "mainnet" }
 
 [addresses]
-aura_weaver = "0xCAFE"
+aura_weaver = "0x0b65f8046e689981c490d760553a03b9d11775d03d78c141d6a44041c3b12a43"
 
 [dev-addresses]
