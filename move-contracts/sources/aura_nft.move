@@ -139,7 +139,7 @@ module aura_weaver::aura_nft {
         let rarity_score = calculate_rarity(transaction_count, mood_seed);
         let current_time = timestamp::now_seconds();
         
-        let token_constructor_ref = token::create_named_token(
+        let token_constructor_ref = token::create(
             user,
             collection_name,
             description,
