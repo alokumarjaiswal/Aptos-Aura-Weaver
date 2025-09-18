@@ -200,6 +200,10 @@ function AuraMinterApp() {
         data: {
           function: "0x0b65f8046e689981c490d760553a03b9d11775d03d78c141d6a44041c3b12a43::aura_nft::mint_aura",
           functionArguments: [moodSeed, transactionCount, tokenName, uri],
+        },
+        options: {
+          maxGasAmount: 10000,
+          gasUnitPrice: 100,
         }
       });
       console.log('🎨 Transaction submitted:', response.hash);
