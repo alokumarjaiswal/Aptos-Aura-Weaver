@@ -3,6 +3,10 @@ import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
 import { WalletProvider } from './WalletProvider';
 import { AuraGenerator } from './AuraGenerator';
+import { NotificationProvider, useNotifications, createNotification } from './contexts/NotificationContext';
+import { NotificationCenter } from './components/NotificationCenter';
+import { NotificationButton } from './components/NotificationButton';
+import { NotificationContainer } from './components/NotificationContainer';
 import './App.css';
 
 const config = new AptosConfig({ network: Network.DEVNET });
@@ -27,35 +31,37 @@ interface SuccessState {
 
 function AuraMinterApp() {
   const { account, connected, connect, disconnect } = useWallet();
+  const { addNotification } = useNotifications();
   const [moodSeed, setMoodSeed] = useState('');
   const [transactionCount, setTransactionCount] = useState(0);
   const [imageData, setImageData] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<ErrorState | null>(null);
-  const [success, setSuccess] = useState<SuccessState | null>(null);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
 
   /**
-   * Clear error and success messages after a timeout
+   * Show error notification
    */
-  const clearMessages = () => {
-    setTimeout(() => setError(null), 5000);
-    setTimeout(() => setSuccess(null), 3000);
+  const showError = (message: string, type: 'error' | 'warning' | 'info' = 'error', category: 'wallet' | 'transaction' | 'nft' | 'system' | 'user' = 'system') => {
+    addNotification({
+      type,
+      title: type === 'error' ? 'Error' : type === 'warning' ? 'Warning' : 'Info',
+      message,
+      category,
+      persistent: type === 'error'
+    });
   };
 
   /**
-   * Show error message with type and auto-clear
+   * Show success notification
    */
-  const showError = (message: string, type: ErrorState['type'] = 'error') => {
-    setError({ message, type, timestamp: Date.now() });
-    clearMessages();
-  };
-
-  /**
-   * Show success message with auto-clear
-   */
-  const showSuccess = (message: string) => {
-    setSuccess({ message, timestamp: Date.now() });
-    clearMessages();
+  const showSuccess = (title: string, message: string, category: 'wallet' | 'transaction' | 'nft' | 'system' | 'user' = 'system', metadata?: any) => {
+    addNotification({
+      type: 'success',
+      title,
+      message,
+      category,
+      metadata
+    });
   };
 
   /**
@@ -63,15 +69,15 @@ function AuraMinterApp() {
    */
   const validateMoodSeed = (seed: string): boolean => {
     if (!seed.trim()) {
-      showError('Please enter a mood seed to generate your aura', 'warning');
+      showError('Please enter a mood seed to generate your aura', 'warning', 'user');
       return false;
     }
     if (seed.length < 2) {
-      showError('Mood seed should be at least 2 characters long', 'warning');
+      showError('Mood seed should be at least 2 characters long', 'warning', 'user');
       return false;
     }
     if (seed.length > 50) {
-      showError('Mood seed should be less than 50 characters', 'warning');
+      showError('Mood seed should be less than 50 characters', 'warning', 'user');
       return false;
     }
     return true;
@@ -82,12 +88,11 @@ function AuraMinterApp() {
    */
   const fetchUserData = async () => {
     if (!account?.address) {
-      showError('No wallet connected. Please connect your wallet first.', 'warning');
+      showError('No wallet connected. Please connect your wallet first.', 'warning', 'wallet');
       return;
     }
     
     setLoading(true);
-    setError(null);
     
     try {
       const addressString = account.address.toString();
@@ -95,10 +100,11 @@ function AuraMinterApp() {
       const txCount = parseInt(accountData.sequence_number);
       
       setTransactionCount(txCount);
-      showSuccess(`Successfully fetched account data! Found ${txCount} transactions.`);
+      
+      addNotification(createNotification.dataFetched('transactions', txCount));
       
       if (txCount === 0) {
-        showError('Your account has no transactions yet. You can still create an aura!', 'info');
+        showError('Your account has no transactions yet. You can still create an aura!', 'info', 'wallet');
       }
     } catch (error: any) {
       console.error('Error fetching user data:', error);
@@ -106,11 +112,11 @@ function AuraMinterApp() {
       // Provide specific error messages based on error type
       if (error?.message?.includes('not found')) {
         setTransactionCount(0);
-        showError('Account not found on Aptos devnet. Using default values for demo.', 'info');
+        showError('Account not found on Aptos devnet. Using default values for demo.', 'info', 'system');
       } else if (error?.message?.includes('network')) {
-        showError('Network error. Please check your connection and try again.', 'error');
+        showError('Network error. Please check your connection and try again.', 'error', 'system');
       } else {
-        showError('Unable to fetch account data. Using demo values.', 'warning');
+        showError('Unable to fetch account data. Using demo values.', 'warning', 'system');
         setTransactionCount(Math.floor(Math.random() * 50) + 5); // Random demo value
       }
     } finally {
@@ -123,19 +129,28 @@ function AuraMinterApp() {
    */
   const handleConnect = async () => {
     try {
-      setError(null);
       await connect('Petra');
-      showSuccess('Wallet connected successfully!');
+      if (account?.address) {
+        addNotification(createNotification.walletConnected(account.address.toString()));
+      }
     } catch (error: any) {
       console.error('Wallet connection error:', error);
       if (error?.message?.includes('User rejected')) {
-        showError('Wallet connection was cancelled by user.', 'warning');
+        showError('Wallet connection was cancelled by user.', 'warning', 'wallet');
       } else if (error?.message?.includes('not installed')) {
-        showError('Petra wallet is not installed. Please install it first.', 'error');
+        showError('Petra wallet is not installed. Please install it first.', 'error', 'wallet');
       } else {
-        showError('Failed to connect wallet. Please try again.', 'error');
+        showError('Failed to connect wallet. Please try again.', 'error', 'wallet');
       }
     }
+  };
+
+  /**
+   * Handle wallet disconnection
+   */
+  const handleDisconnect = () => {
+    disconnect();
+    addNotification(createNotification.walletDisconnected());
   };
 
   /**
@@ -144,7 +159,7 @@ function AuraMinterApp() {
   const mintNFT = async () => {
     // Validation checks
     if (!account?.address) {
-      showError('No wallet connected. Please connect your wallet first.', 'warning');
+      showError('No wallet connected. Please connect your wallet first.', 'warning', 'wallet');
       return;
     }
 
@@ -153,12 +168,11 @@ function AuraMinterApp() {
     }
 
     if (!imageData) {
-      showError('No aura generated yet. Please wait for the aura to be created.', 'warning');
+      showError('No aura generated yet. Please wait for the aura to be created.', 'warning', 'nft');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const tokenName = `Aura-${moodSeed.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}`;
@@ -173,10 +187,20 @@ function AuraMinterApp() {
 
       console.log('🎨 Minting NFT with payload:', payload);
       
+      // Add minting started notification
+      addNotification({
+        type: 'info',
+        title: 'Minting Started',
+        message: `Creating your aura NFT "${tokenName}"...`,
+        category: 'nft',
+        metadata: { nftTokenName: tokenName, actionType: 'mint_start' }
+      });
+      
       // Simulate minting process (in real implementation, this would call the smart contract)
       await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
       
-      showSuccess(`🎉 NFT "${tokenName}" minted successfully! Check your wallet for the new token.`);
+      // Add success notification
+      addNotification(createNotification.nftMinted(tokenName, 'simulated-tx-hash'));
       
       // Log detailed information for development
       console.log('✅ NFT Minting Details:', {
@@ -193,13 +217,13 @@ function AuraMinterApp() {
       console.error('❌ Error minting NFT:', error);
       
       if (error?.message?.includes('insufficient funds')) {
-        showError('Insufficient funds to mint NFT. Please ensure you have enough APT tokens.', 'error');
+        showError('Insufficient funds to mint NFT. Please ensure you have enough APT tokens.', 'error', 'transaction');
       } else if (error?.message?.includes('network')) {
-        showError('Network error during minting. Please check your connection and try again.', 'error');
+        showError('Network error during minting. Please check your connection and try again.', 'error', 'system');
       } else if (error?.message?.includes('rejected')) {
-        showError('Transaction was rejected. Please try again.', 'warning');
+        showError('Transaction was rejected. Please try again.', 'warning', 'transaction');
       } else {
-        showError('Failed to mint NFT. Please try again later.', 'error');
+        showError('Failed to mint NFT. Please try again later.', 'error', 'nft');
       }
     } finally {
       setLoading(false);
@@ -238,9 +262,9 @@ function AuraMinterApp() {
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(generateShareText());
-      showSuccess('Share text copied to clipboard!');
+      showSuccess('Copied to Clipboard', 'Share text copied successfully!', 'user');
     } catch (error) {
-      showError('Failed to copy to clipboard', 'warning');
+      showError('Failed to copy to clipboard', 'warning', 'user');
     }
   };
 
@@ -249,20 +273,25 @@ function AuraMinterApp() {
    */
   const downloadAura = () => {
     if (!imageData) {
-      showError('No aura image available to download', 'warning');
+      showError('No aura image available to download', 'warning', 'user');
       return;
     }
 
     try {
+      const fileName = `aura-${moodSeed.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}.png`;
       const link = document.createElement('a');
-      link.download = `aura-${moodSeed.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}.png`;
+      link.download = fileName;
       link.href = imageData;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      showSuccess('Aura image downloaded successfully!');
+      
+      showSuccess('Download Complete', `Aura image "${fileName}" downloaded successfully!`, 'user', {
+        fileName,
+        actionType: 'download'
+      });
     } catch (error) {
-      showError('Failed to download image', 'error');
+      showError('Failed to download image', 'error', 'user');
     }
   };
 
@@ -270,45 +299,18 @@ function AuraMinterApp() {
     <div className="app-container">
       <div className="app-content">
         <header className="app-header">
-          <h1 className="app-title">Aptos Aura Weaver</h1>
-          <p className="app-subtitle">Generate your personalized aura NFT based on your on-chain activity</p>
+          <div className="header-content">
+            <div className="header-text">
+              <h1 className="app-title">Aptos Aura Weaver</h1>
+              <p className="app-subtitle">Generate your personalized aura NFT based on your on-chain activity</p>
+            </div>
+            <div className="header-actions">
+              <NotificationButton onClick={() => setIsNotificationCenterOpen(true)} />
+            </div>
+          </div>
         </header>
         
         <main className="main-content">
-          {/* Error and Success Notifications */}
-          {error && (
-            <div className={`notification notification-${error.type}`}>
-              <div className="notification-content">
-                <span className="notification-icon">
-                  {error.type === 'error' ? '❌' : error.type === 'warning' ? '⚠️' : 'ℹ️'}
-                </span>
-                <span className="notification-message">{error.message}</span>
-                <button 
-                  className="notification-close"
-                  onClick={() => setError(null)}
-                  aria-label="Close notification"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
-          
-          {success && (
-            <div className="notification notification-success">
-              <div className="notification-content">
-                <span className="notification-icon">✅</span>
-                <span className="notification-message">{success.message}</span>
-                <button 
-                  className="notification-close"
-                  onClick={() => setSuccess(null)}
-                  aria-label="Close notification"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
 
           {!connected ? (
             <div className="wallet-connect-section">
@@ -331,7 +333,7 @@ function AuraMinterApp() {
                   <strong>Connected:</strong> {account?.address?.toString()}
                 </div>
                 <button 
-                  onClick={disconnect}
+                  onClick={handleDisconnect}
                   className="btn btn-danger"
                 >
                   Disconnect
@@ -448,6 +450,15 @@ function AuraMinterApp() {
           )}
         </main>
       </div>
+      
+      {/* Notification Center */}
+      <NotificationCenter 
+        isOpen={isNotificationCenterOpen} 
+        onClose={() => setIsNotificationCenterOpen(false)} 
+      />
+      
+      {/* Popup Notifications */}
+      <NotificationContainer />
     </div>
   );
 }
@@ -455,7 +466,9 @@ function AuraMinterApp() {
 function App() {
   return (
     <WalletProvider>
-      <AuraMinterApp />
+      <NotificationProvider>
+        <AuraMinterApp />
+      </NotificationProvider>
     </WalletProvider>
   );
 }

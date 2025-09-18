@@ -80,9 +80,25 @@
 .app-header {
   background: transparent;
   padding: var(--spacing-3xl) var(--spacing-2xl);
-  text-align: center;
   position: relative;
   border-bottom: 2px solid var(--color-separator-sharp);
+}
+
+.header-content {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.header-text {
+  text-align: center;
+  grid-column: 2;
+}
+
+.header-actions {
+  grid-column: 3;
+  justify-self: end;
 }
 
 .app-title {
@@ -761,6 +777,15 @@
   
   .app-header {
     padding: var(--spacing-2xl) var(--spacing-lg);
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+  
+  .header-text {
+    text-align: center;
   }
   
   .main-content {
