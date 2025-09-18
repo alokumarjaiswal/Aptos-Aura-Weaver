@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/Aptos-Aura-Weaver/static/css/main.3bfdcc67.css",
-    "main.js": "/Aptos-Aura-Weaver/static/js/main.3f9bdee6.js",
+    "main.js": "/Aptos-Aura-Weaver/static/js/main.45ad3388.js",
     "static/js/453.68e6e1d7.chunk.js": "/Aptos-Aura-Weaver/static/js/453.68e6e1d7.chunk.js",
     "index.html": "/Aptos-Aura-Weaver/index.html",
     "main.3bfdcc67.css.map": "/Aptos-Aura-Weaver/static/css/main.3bfdcc67.css.map",
-    "main.3f9bdee6.js.map": "/Aptos-Aura-Weaver/static/js/main.3f9bdee6.js.map",
+    "main.45ad3388.js.map": "/Aptos-Aura-Weaver/static/js/main.45ad3388.js.map",
     "453.68e6e1d7.chunk.js.map": "/Aptos-Aura-Weaver/static/js/453.68e6e1d7.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.3bfdcc67.css",
-    "static/js/main.3f9bdee6.js"
+    "static/js/main.45ad3388.js"
   ]
 }
