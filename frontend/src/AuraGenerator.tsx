@@ -221,20 +221,25 @@ export const AuraGenerator: React.FC<AuraGeneratorProps> = ({
   }, [moodSeed, transactionCount, onImageGenerated]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="aura-generator-container">
       <div 
         ref={p5ContainerRef} 
-        style={{ 
-          width: 400, 
-          height: 400, 
-          border: '2px solid #333', 
-          borderRadius: 8,
-          backgroundColor: '#111' // Dark background to contrast with bright particles
-        }} 
+        className="aura-canvas-container"
       />
-      <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-        Aura: "{moodSeed}" | Particles: {Math.max(transactionCount, 5) + 10}
-      </p>
+      <div className="aura-metadata">
+        <div className="aura-metadata-item">
+          <span className="aura-metadata-label">Mood</span>
+          <span className="aura-metadata-value">"{moodSeed}"</span>
+        </div>
+        <div className="aura-metadata-item">
+          <span className="aura-metadata-label">Particles</span>
+          <span className="aura-metadata-value">{Math.max(transactionCount, 5) + 10}</span>
+        </div>
+        <div className="aura-metadata-item">
+          <span className="aura-metadata-label">Transactions</span>
+          <span className="aura-metadata-value">{transactionCount}</span>
+        </div>
+      </div>
     </div>
   );
 };

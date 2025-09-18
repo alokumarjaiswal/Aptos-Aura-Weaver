@@ -270,7 +270,7 @@ function AuraMinterApp() {
     <div className="app-container">
       <div className="app-content">
         <header className="app-header">
-          <h1 className="app-title">🌟 Aptos Aura Weaver</h1>
+          <h1 className="app-title">Aptos Aura Weaver</h1>
           <p className="app-subtitle">Generate your personalized aura NFT based on your on-chain activity</p>
         </header>
         
@@ -318,7 +318,9 @@ function AuraMinterApp() {
                 onClick={handleConnect}
                 className="btn btn-primary"
               >
-                <span>🔗</span>
+                <svg width="20" height="19" viewBox="0 0 35 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M0 19.4667C0 8.94232 8.53168 0.410645 19.056 0.410645C33.0023 0.410645 39.6271 17.5875 29.2927 26.9522L24.4311 31.3576L15.654 23.3559L27.2291 12.2877H11.8771V32.1818H0V19.4667Z" fill="currentColor"/>
+                </svg>
                 Connect Petra Wallet
               </button>
             </div>
@@ -337,17 +339,20 @@ function AuraMinterApp() {
               </div>
 
               <div className="section">
-                <button 
-                  onClick={fetchUserData} 
-                  disabled={loading}
-                  className={`btn ${loading ? '' : 'btn-success'}`}
-                >
-                  {loading && <span className="loading-spinner"></span>}
-                  {loading ? 'Loading...' : '📊 Fetch Account Data'}
-                </button>
-                <div className={`status-indicator ${transactionCount > 0 ? 'status-success' : ''}`}>
-                  <strong>Transaction Count:</strong> {transactionCount}
-                  {transactionCount > 0 && <span>✓</span>}
+                <div className="fetch-data-row">
+                  <button 
+                    onClick={fetchUserData} 
+                    disabled={loading}
+                    className={`btn ${loading ? '' : 'btn-success'}`}
+                  >
+                    {loading && <span className="loading-spinner"></span>}
+                    {loading ? 'Loading...' : 'Fetch Account Data'}
+                  </button>
+                  
+                  <div className={`status-indicator ${transactionCount > 0 ? 'status-success' : ''}`}>
+                    <strong>Transaction Count:</strong> {transactionCount}
+                    {transactionCount > 0 && <span>✓</span>}
+                  </div>
                 </div>
               </div>
 

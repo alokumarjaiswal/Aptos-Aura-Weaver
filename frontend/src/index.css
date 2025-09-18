@@ -1,13 +1,167 @@
-body {
+/* Apple Design System - Global Styles */
+:root {
+  /* Apple Color Palette */
+  --color-primary: #007AFF;
+  --color-primary-dark: #0051D5;
+  --color-secondary: #5856D6;
+  --color-success: #30D158;
+  --color-warning: #FF9F0A;
+  --color-danger: #FF3B30;
+  
+  /* Semantic Colors - Light Mode - High Contrast */
+  --color-label-primary: rgba(0, 0, 0, 0.95);
+  --color-label-secondary: rgba(0, 0, 0, 0.75);
+  --color-label-tertiary: rgba(0, 0, 0, 0.45);
+  --color-label-quaternary: rgba(0, 0, 0, 0.25);
+  
+  /* Background Colors */
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F2F2F7;
+  --color-background-tertiary: #FFFFFF;
+  --color-background-grouped-primary: #F2F2F7;
+  --color-background-grouped-secondary: #FFFFFF;
+  
+  /* Fill Colors */
+  --color-fill-primary: rgba(120, 120, 128, 0.2);
+  --color-fill-secondary: rgba(120, 120, 128, 0.16);
+  --color-fill-tertiary: rgba(118, 118, 128, 0.12);
+  --color-fill-quaternary: rgba(116, 116, 128, 0.08);
+  
+  /* Separator Colors - High Contrast Sharp */
+  --color-separator: rgba(0, 0, 0, 0.12);
+  --color-separator-opaque: rgba(0, 0, 0, 0.4);
+  --color-separator-sharp: rgba(0, 0, 0, 0.25);
+  --color-separator-ultra-sharp: rgba(0, 0, 0, 0.4);
+  
+  /* Apple Typography Scale */
+  --font-family-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  
+  /* Font Sizes - Apple's Type Scale */
+  --font-size-large-title: 34px;
+  --font-size-title-1: 28px;
+  --font-size-title-2: 22px;
+  --font-size-title-3: 20px;
+  --font-size-headline: 17px;
+  --font-size-body: 17px;
+  --font-size-callout: 16px;
+  --font-size-subhead: 15px;
+  --font-size-footnote: 13px;
+  --font-size-caption-1: 12px;
+  --font-size-caption-2: 11px;
+  
+  /* Font Weights */
+  --font-weight-ultralight: 100;
+  --font-weight-thin: 200;
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-heavy: 800;
+  --font-weight-black: 900;
+  
+  /* Spacing Scale - Apple's 8pt Grid */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  --spacing-3xl: 64px;
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+  
+  /* Shadows - Apple Style */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease-out;
+  --transition-normal: 0.2s ease-out;
+  --transition-slow: 0.3s ease-out;
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #0A84FF;
+    --color-primary-dark: #0969DA;
+    --color-secondary: #5E5CE6;
+    --color-success: #32D74B;
+    --color-warning: #FF9F0A;
+    --color-danger: #FF453A;
+    
+    --color-label-primary: rgba(255, 255, 255, 0.98);
+    --color-label-secondary: rgba(255, 255, 255, 0.8);
+    --color-label-tertiary: rgba(255, 255, 255, 0.5);
+    --color-label-quaternary: rgba(255, 255, 255, 0.3);
+    
+    --color-background-primary: #000000;
+    --color-background-secondary: #1C1C1E;
+    --color-background-tertiary: #2C2C2E;
+    --color-background-grouped-primary: #000000;
+    --color-background-grouped-secondary: #1C1C1E;
+    
+    --color-fill-primary: rgba(120, 120, 128, 0.36);
+    --color-fill-secondary: rgba(120, 120, 128, 0.32);
+    --color-fill-tertiary: rgba(118, 118, 128, 0.28);
+    --color-fill-quaternary: rgba(116, 116, 128, 0.24);
+    
+    --color-separator: rgba(255, 255, 255, 0.15);
+    --color-separator-opaque: rgba(255, 255, 255, 0.4);
+    --color-separator-sharp: rgba(255, 255, 255, 0.3);
+    --color-separator-ultra-sharp: rgba(255, 255, 255, 0.5);
+  }
+}
+
+* {
+  box-sizing: border-box;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family-system);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.4;
+  color: var(--color-label-primary);
+  background-color: var(--color-background-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+  background-color: var(--color-fill-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus styles */
+*:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Selection styles */
+::selection {
+  background-color: var(--color-primary);
+  color: white;
 }
