@@ -1,42 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, useEffect } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
 import { WalletProvider } from './WalletProvider';
-import { AuraGenerator } from './AuraGenerator';
 import { NotificationProvider, useNotifications, createNotification } from './contexts/NotificationContext';
 import { NotificationCenter } from './components/NotificationCenter';
 import { NotificationButton } from './components/NotificationButton';
 import { NotificationContainer } from './components/NotificationContainer';
+import { getIPFSConfig, uploadToIPFS, createNFTMetadata } from './services/ipfsService';
+import {
+  validateMoodSeed,
+  validateTransactionCount,
+  validateNetworkConnection,
+  validateWalletConnection,
+  validateImageData
+} from './utils/validation';
 import './App.css';
 
-const config = new AptosConfig({ network: Network.DEVNET });
+// Lazy load the AuraGenerator component for better performance
+const AuraGenerator = React.lazy(() => import('./AuraGenerator'));
+
+const network = (process.env.REACT_APP_APTOS_NETWORK as Network) || Network.DEVNET;
+const nodeUrl = process.env.REACT_APP_APTOS_NODE_URL || undefined;
+
+const config = new AptosConfig({
+  network,
+  fullnode: nodeUrl
+});
 const aptos = new Aptos(config);
 
-/**
- * Interface for error state management
- */
-interface ErrorState {
-  message: string;
-  type: 'error' | 'warning' | 'info';
-  timestamp: number;
-}
-
-/**
- * Interface for success state management
- */
-interface SuccessState {
-  message: string;
-  timestamp: number;
-}
 
 function AuraMinterApp() {
   const { account, connected, connect, disconnect, signAndSubmitTransaction } = useWallet();
-  const { addNotification } = useNotifications();
+  const { addNotification, clearAll } = useNotifications();
   const [moodSeed, setMoodSeed] = useState('');
   const [transactionCount, setTransactionCount] = useState(0);
   const [imageData, setImageData] = useState('');
   const [loading, setLoading] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+
+  // Clear notifications when wallet disconnects
+  useEffect(() => {
+    if (!connected) {
+      clearAll();
+    }
+  }, [connected, clearAll]);
 
   /**
    * Show error notification
@@ -64,40 +71,43 @@ function AuraMinterApp() {
     });
   };
 
-  /**
-   * Validate mood seed input
-   */
-  const validateMoodSeed = (seed: string): boolean => {
-    if (!seed.trim()) {
-      showError('Please enter a mood seed to generate your aura', 'warning', 'user');
-      return false;
-    }
-    if (seed.length < 2) {
-      showError('Mood seed should be at least 2 characters long', 'warning', 'user');
-      return false;
-    }
-    if (seed.length > 50) {
-      showError('Mood seed should be less than 50 characters', 'warning', 'user');
-      return false;
-    }
-    return true;
-  };
 
   /**
    * Fetch user account data with enhanced error handling
    */
   const fetchUserData = async () => {
-    if (!account?.address) {
-      showError('No wallet connected. Please connect your wallet first.', 'warning', 'wallet');
+    // Validate wallet connection
+    const walletValidation = validateWalletConnection(account?.address?.toString());
+    if (!walletValidation.isValid) {
+      showError(walletValidation.error!, 'warning', 'wallet');
+      return;
+    }
+
+    // Validate network connection
+    const networkValidation = validateNetworkConnection();
+    if (!networkValidation.isValid) {
+      showError(networkValidation.error!, 'error', 'system');
       return;
     }
     
     setLoading(true);
     
     try {
-      const addressString = account.address.toString();
+      const addressString = account!.address.toString();
       const accountData = await aptos.getAccountInfo({ accountAddress: addressString });
+
+      // Validate response data
+      if (!accountData || typeof accountData.sequence_number === 'undefined') {
+        throw new Error('Invalid response from Aptos node');
+      }
+
       const txCount = parseInt(accountData.sequence_number);
+
+      // Validate transaction count
+      const countValidation = validateTransactionCount(txCount, { minValue: 0 });
+      if (!countValidation.isValid) {
+        throw new Error(countValidation.error);
+      }
       
       setTransactionCount(txCount);
       
@@ -110,11 +120,13 @@ function AuraMinterApp() {
       console.error('Error fetching user data:', error);
       
       // Provide specific error messages based on error type
-      if (error?.message?.includes('not found')) {
+      if (error?.message?.includes('not found') || error?.message?.includes('Invalid response')) {
         setTransactionCount(0);
-        showError('Account not found on Aptos devnet. Using default values for demo.', 'info', 'system');
-      } else if (error?.message?.includes('network')) {
+        showError('Account not found on Aptos network. Using default values for demo.', 'info', 'system');
+      } else if (error?.message?.includes('network') || !navigator.onLine) {
         showError('Network error. Please check your connection and try again.', 'error', 'system');
+      } else if (error?.message?.includes('timeout')) {
+        showError('Request timed out. Please try again.', 'warning', 'system');
       } else {
         showError('Unable to fetch account data. Using demo values.', 'warning', 'system');
         setTransactionCount(Math.floor(Math.random() * 50) + 5); // Random demo value
@@ -128,20 +140,42 @@ function AuraMinterApp() {
    * Handle wallet connection with error handling
    */
   const handleConnect = async () => {
+    // Check if wallet is already connecting
+    if (loading) {
+      return;
+    }
+
     try {
+      setLoading(true);
       await connect('Petra');
-      if (account?.address) {
-        addNotification(createNotification.walletConnected(account.address.toString()));
-      }
+
+      // The wallet adapter will automatically update the account state
+      // Notification will be triggered by the useEffect when account is available
+
     } catch (error: any) {
       console.error('Wallet connection error:', error);
-      if (error?.message?.includes('User rejected')) {
-        showError('Wallet connection was cancelled by user.', 'warning', 'wallet');
+
+      let errorMessage = 'Failed to connect wallet. Please try again.';
+      let errorType: 'error' | 'warning' | 'info' = 'error';
+
+      if (error?.message?.includes('User rejected') || error?.message?.includes('cancelled')) {
+        errorMessage = 'Wallet connection was cancelled by user.';
+        errorType = 'warning';
       } else if (error?.message?.includes('not installed')) {
-        showError('Petra wallet is not installed. Please install it first.', 'error', 'wallet');
-      } else {
-        showError('Failed to connect wallet. Please try again.', 'error', 'wallet');
+        errorMessage = 'Petra wallet is not installed. Please install it first.';
+      } else if (error?.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error?.message?.includes('timeout')) {
+        errorMessage = 'Connection timed out. Please try again.';
+        errorType = 'warning';
+      } else if (error?.name === 'WalletNotReadyError' || error?.name === 'WalletConnectionError') {
+        errorMessage = 'Wallet is not ready. Please make sure Petra wallet is properly installed and unlocked.';
+        errorType = 'warning';
       }
+
+      showError(errorMessage, errorType, 'wallet');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,6 +184,8 @@ function AuraMinterApp() {
    */
   const handleDisconnect = () => {
     disconnect();
+    clearAll(); // Clear all notifications when wallet disconnects
+    localStorage.removeItem('aptos-aura-notifications'); // Clear from localStorage too
     addNotification(createNotification.walletDisconnected());
   };
 
@@ -158,18 +194,37 @@ function AuraMinterApp() {
    */
   const mintNFT = async () => {
     // Validation checks
-    if (!account?.address) {
-      showError('No wallet connected. Please connect your wallet first.', 'warning', 'wallet');
+    const walletValidation = validateWalletConnection(account?.address?.toString());
+    if (!walletValidation.isValid) {
+      showError(walletValidation.error!, 'warning', 'wallet');
       return;
     }
 
-    if (!validateMoodSeed(moodSeed)) {
-      return; // Error already shown by validateMoodSeed
+    const moodValidation = validateMoodSeed(moodSeed);
+    if (!moodValidation.isValid) {
+      showError(moodValidation.error!, 'warning', 'user');
+      return;
     }
 
-    if (!imageData) {
-      showError('No aura generated yet. Please wait for the aura to be created.', 'warning', 'nft');
+    const countValidation = validateTransactionCount(transactionCount);
+    if (!countValidation.isValid) {
+      showError(countValidation.error!, 'error', 'system');
       return;
+    }
+
+    const imageValidation = validateImageData(imageData);
+    if (!imageValidation.isValid) {
+      showError(imageValidation.error!, 'warning', 'nft');
+      return;
+    }
+
+    // Check if IPFS is configured
+    const ipfsConfig = getIPFSConfig();
+    const hasIPFSConfig = ipfsConfig.apiKey && ipfsConfig.secretKey;
+
+    if (!hasIPFSConfig) {
+      // Show warning but continue with placeholder URI
+      showError('IPFS not configured. Using demo mode for NFT minting.', 'warning', 'system');
     }
 
     setLoading(true);
@@ -177,14 +232,81 @@ function AuraMinterApp() {
     try {
       const tokenName = `Aura-${moodSeed.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}`;
       const description = `Personal aura NFT generated from ${transactionCount} transactions with mood "${moodSeed}"`;
-      const uri = "https://placeholder-uri.com"; // TODO: Replace with IPFS URI
+
+      let uri: string;
+
+      if (hasIPFSConfig) {
+        // Convert imageData to blob for IPFS upload
+        const imageBlob = await fetch(imageData).then(r => r.blob());
+
+        // Upload image to IPFS
+        addNotification({
+          type: 'info',
+          title: 'Uploading Image',
+          message: 'Uploading your aura image to IPFS...',
+          category: 'nft',
+          metadata: { actionType: 'ipfs_upload_start' }
+        });
+
+        const imageUpload = await uploadToIPFS(imageBlob, ipfsConfig);
+
+        if (!imageUpload.success) {
+          throw new Error(`IPFS upload failed: ${imageUpload.error}`);
+        }
+
+        // Create and upload metadata
+        const metadata = createNFTMetadata(
+          tokenName,
+          description,
+          imageUpload.url!,
+          [
+            { trait_type: 'Mood', value: moodSeed },
+            { trait_type: 'Transaction Count', value: transactionCount.toString() },
+            { trait_type: 'Generated At', value: new Date().toISOString() },
+            { trait_type: 'Generator', value: 'Aptos Aura Weaver v1.0' }
+          ]
+        );
+
+        const metadataUpload = await uploadToIPFS(
+          new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }),
+          ipfsConfig
+        );
+
+        if (!metadataUpload.success) {
+          throw new Error(`Metadata upload failed: ${metadataUpload.error}`);
+        }
+
+        uri = metadataUpload.url!;
       
       console.log('🎨 Minting NFT with parameters:', {
         tokenName,
         moodSeed,
         transactionCount,
-        uri
-      });
+          uri,
+          imageHash: imageUpload.hash,
+          metadataHash: metadataUpload.hash
+        });
+      } else {
+        // Use simple placeholder URI for demo (short enough for blockchain)
+        addNotification({
+          type: 'info',
+          title: 'Preparing Demo NFT',
+          message: 'Creating your aura NFT with demo metadata...',
+          category: 'nft',
+          metadata: { actionType: 'demo_mode_preparation' }
+        });
+
+        // Use a simple HTTP URL instead of long data URI
+        const demoUri = `https://demo.aura-aptos.com/nft/${tokenName.replace(/[^a-zA-Z0-9]/g, '')}`;
+        uri = demoUri;
+
+        console.log('🎨 Minting NFT with parameters (Demo Mode):', {
+          tokenName,
+          moodSeed,
+          transactionCount,
+          uri: demoUri
+        });
+      }
       
       // Add minting started notification
       addNotification({
@@ -216,7 +338,8 @@ function AuraMinterApp() {
       console.log('✅ Transaction confirmed:', txResult);
       
       // Add success notification
-      addNotification(createNotification.nftMinted(tokenName, response.hash));
+      const demoMode = !hasIPFSConfig;
+      addNotification(createNotification.nftMinted(tokenName, response.hash, demoMode));
       
       // Log detailed information for development
       console.log('✅ NFT Minting Details:', {
@@ -224,7 +347,7 @@ function AuraMinterApp() {
         description,
         moodSeed,
         transactionCount,
-        walletAddress: account.address.toString(),
+        walletAddress: account?.address?.toString(),
         imageDataSize: imageData.length,
         timestamp: new Date().toISOString()
       });
@@ -391,11 +514,18 @@ function AuraMinterApp() {
                 <div className="aura-section">
                   <h3 className="aura-title">Your Personal Aura</h3>
                   <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                    <Suspense fallback={
+                      <div className="aura-loading-fallback">
+                        <div className="loading-spinner"></div>
+                        <p>Generating your aura visualization...</p>
+                      </div>
+                    }>
                     <AuraGenerator
                       moodSeed={moodSeed}
                       transactionCount={transactionCount}
                       onImageGenerated={setImageData}
                     />
+                    </Suspense>
                   </div>
                   
                   {imageData && (

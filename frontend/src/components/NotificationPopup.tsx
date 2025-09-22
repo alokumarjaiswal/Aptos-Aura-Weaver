@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { NotificationData, NotificationIcons } from '../types/notifications';
 import './NotificationPopup.css';
 
@@ -13,6 +13,17 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+
+  const handleDismiss = useCallback(() => {
+    if (isExiting) return; // Prevent double dismissal
+
+    setIsExiting(true);
+    setIsVisible(false);
+
+    setTimeout(() => {
+      onDismiss(notification.id);
+    }, 300); // Wait for fade out animation
+  }, [isExiting, onDismiss, notification.id]);
 
   useEffect(() => {
     // Show the notification with a small delay for smoother animation
@@ -33,18 +44,7 @@ export const NotificationPopup: React.FC<NotificationPopupProps> = ({
     }
 
     return () => clearTimeout(showTimer);
-  }, [notification.id]); // Only depend on notification ID
-
-  const handleDismiss = () => {
-    if (isExiting) return; // Prevent double dismissal
-    
-    setIsExiting(true);
-    setIsVisible(false);
-    
-    setTimeout(() => {
-      onDismiss(notification.id);
-    }, 300); // Wait for fade out animation
-  };
+  }, [notification.id, notification.persistent, notification.type, handleDismiss]); // Depend on notification properties and handleDismiss
 
   return (
     <div className={`notification-popup ${notification.type} ${isVisible ? 'visible' : ''}`}>

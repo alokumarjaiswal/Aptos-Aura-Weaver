@@ -20,8 +20,8 @@ const initialState: NotificationState = {
   notifications: []
 };
 
-// Local storage key
-const STORAGE_KEY = 'aptos-aura-notifications';
+// Local storage key prefix
+const STORAGE_KEY_PREFIX = 'aptos-aura-notifications';
 
 // Reducer function
 function notificationReducer(state: NotificationState, action: NotificationAction): NotificationState {
@@ -102,7 +102,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Load notifications from localStorage on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(STORAGE_KEY_PREFIX);
       if (stored) {
         const notifications: NotificationData[] = JSON.parse(stored);
         dispatch({ type: 'LOAD_NOTIFICATIONS', payload: notifications });
@@ -115,7 +115,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Save notifications to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.notifications));
+      localStorage.setItem(STORAGE_KEY_PREFIX, JSON.stringify(state.notifications));
     } catch (error) {
       console.warn('Failed to save notifications to localStorage:', error);
     }
@@ -209,10 +209,10 @@ export const createNotification = {
     metadata
   }),
   
-  walletConnected: (address: string): Omit<NotificationData, 'id' | 'timestamp' | 'read'> => ({
+  walletConnected: (address?: string): Omit<NotificationData, 'id' | 'timestamp' | 'read'> => ({
     type: 'success',
     title: 'Wallet Connected',
-    message: `Successfully connected to wallet`,
+    message: address ? `Successfully connected to wallet: ${address.slice(0, 6)}...${address.slice(-4)}` : 'Successfully connected to wallet',
     category: 'wallet',
     metadata: { walletAddress: address }
   }),
@@ -224,12 +224,14 @@ export const createNotification = {
     category: 'wallet'
   }),
   
-  nftMinted: (tokenName: string, transactionHash?: string): Omit<NotificationData, 'id' | 'timestamp' | 'read'> => ({
+  nftMinted: (tokenName: string, transactionHash?: string, demoMode?: boolean): Omit<NotificationData, 'id' | 'timestamp' | 'read'> => ({
     type: 'success',
-    title: 'NFT Minted Successfully',
-    message: `Your aura NFT "${tokenName}" has been minted!`,
+    title: demoMode ? 'NFT Minted (Demo Mode)' : 'NFT Minted Successfully',
+    message: demoMode
+      ? `Your aura NFT "${tokenName}" has been minted in demo mode! (IPFS not configured)`
+      : `Your aura NFT "${tokenName}" has been minted!`,
     category: 'nft',
-    metadata: { nftTokenName: tokenName, transactionHash, actionType: 'mint' }
+    metadata: { nftTokenName: tokenName, transactionHash, actionType: 'mint', demoMode }
   }),
   
   transactionComplete: (type: string, details: string, transactionHash?: string): Omit<NotificationData, 'id' | 'timestamp' | 'read'> => ({

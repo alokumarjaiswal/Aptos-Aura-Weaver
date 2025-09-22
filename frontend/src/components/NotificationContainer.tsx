@@ -12,10 +12,10 @@ export const NotificationContainer: React.FC = () => {
     // Only show popup for new notifications
     if (notifications.length > lastNotificationCountRef.current) {
       const latestNotification = notifications[0]; // Get the most recent notification
-      
+
       // Check if this notification is already shown as popup
       const isAlreadyShown = activePopups.some(popup => popup.id === latestNotification.id);
-      
+
       if (!isAlreadyShown) {
         setActivePopups(prev => {
           // Keep max 3 popups, remove oldest if needed
@@ -24,9 +24,9 @@ export const NotificationContainer: React.FC = () => {
         });
       }
     }
-    
+
     lastNotificationCountRef.current = notifications.length;
-  }, [notifications.length, notifications[0]?.id]); // Depend on count and latest notification ID
+  }, [notifications, activePopups]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const dismissPopup = (id: string) => {
     setActivePopups(prev => prev.filter(popup => popup.id !== id));

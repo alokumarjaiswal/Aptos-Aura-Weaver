@@ -66,22 +66,27 @@ module aura_weaver::aura_nft {
     }
 
     /// Create the Aura NFT collection (can only be called once per account)
-    /// 
+    ///
     /// # Arguments
     /// * `creator` - The signer creating the collection
-    /// 
+    ///
     /// # Aborts
     /// * `E_COLLECTION_ALREADY_EXISTS` - If collection already exists for this creator
     public entry fun create_collection(creator: &signer) {
+        create_collection_internal(creator);
+    }
+
+    /// Internal function to create the collection (used by mint_aura)
+    fun create_collection_internal(creator: &signer) {
         let creator_addr = signer::address_of(creator);
-        
+
         // Ensure collection doesn't already exist
         assert!(!exists<AuraCollection>(creator_addr), E_COLLECTION_ALREADY_EXISTS);
-        
+
         let collection_name = string::utf8(COLLECTION_NAME);
         let description = string::utf8(COLLECTION_DESCRIPTION);
         let uri = string::utf8(b"https://aura-weaver.aptos.com/collection.json");
-        
+
         collection::create_unlimited_collection(
             creator,
             description,
@@ -91,7 +96,7 @@ module aura_weaver::aura_nft {
         );
 
         let current_time = timestamp::now_seconds();
-        
+
         move_to(creator, AuraCollection {
             creator: creator_addr,
             total_minted: 0,
@@ -107,14 +112,14 @@ module aura_weaver::aura_nft {
     }
 
     /// Mint a new Aura NFT with enhanced validation and metadata
-    /// 
+    ///
     /// # Arguments
     /// * `user` - The signer minting the NFT
     /// * `mood_seed` - The mood seed string (1-100 characters)
     /// * `transaction_count` - User's transaction count for rarity calculation
     /// * `token_name` - Name for the token (max 50 characters)
     /// * `uri` - URI pointing to the NFT metadata/image
-    /// 
+    ///
     /// # Aborts
     /// * `E_INVALID_MOOD_SEED` - If mood seed is invalid length
     /// * `E_INVALID_TOKEN_NAME` - If token name is invalid length
@@ -127,18 +132,26 @@ module aura_weaver::aura_nft {
         uri: String
     ) acquires AuraCollection {
         let user_addr = signer::address_of(user);
-        
+
         // Validate inputs
         validate_mood_seed(&mood_seed);
         validate_token_name(&token_name);
         validate_uri(&uri);
-        
+
         let collection_name = string::utf8(COLLECTION_NAME);
         let description = build_token_description(&mood_seed, transaction_count);
-        
+
+        // Ensure collection exists - force creation if needed
+        if (!exists<AuraCollection>(user_addr)) {
+            create_collection_internal(user);
+        };
+
+        // Verify collection exists before proceeding
+        assert!(exists<AuraCollection>(user_addr), E_COLLECTION_NOT_FOUND);
+
         let rarity_score = calculate_rarity(transaction_count, mood_seed);
         let current_time = timestamp::now_seconds();
-        
+
         let token_constructor_ref = token::create(
             user,
             collection_name,
@@ -149,7 +162,7 @@ module aura_weaver::aura_nft {
         );
 
         let token_signer = object::generate_signer(&token_constructor_ref);
-        
+
         move_to(&token_signer, AuraNFT {
             mood_seed,
             transaction_count,
@@ -159,11 +172,9 @@ module aura_weaver::aura_nft {
             generation: 1, // First generation
         });
 
-        // Update collection stats if it exists
-        if (exists<AuraCollection>(user_addr)) {
-            let collection = borrow_global_mut<AuraCollection>(user_addr);
-            collection.total_minted = collection.total_minted + 1;
-        };
+        // Update collection stats
+        let collection = borrow_global_mut<AuraCollection>(user_addr);
+        collection.total_minted = collection.total_minted + 1;
 
         // Emit minting event
         event::emit(AuraMintedEvent {
@@ -220,6 +231,18 @@ module aura_weaver::aura_nft {
         let length = string::length(mood_seed);
         assert!(length >= MIN_MOOD_SEED_LENGTH, E_INVALID_MOOD_SEED);
         assert!(length <= MAX_MOOD_SEED_LENGTH, E_INVALID_MOOD_SEED);
+
+        // Check for potentially harmful characters
+        let bytes = string::bytes(mood_seed);
+        let i = 0;
+        while (i < vector::length(bytes)) {
+            let byte = *vector::borrow(bytes, i);
+            // Reject control characters and potentially harmful chars
+            if (byte < 32 || byte == 60 || byte == 62 || byte == 34 || byte == 39) { // < > " '
+                abort E_INVALID_MOOD_SEED
+            };
+            i = i + 1;
+        };
     }
 
     /// Validate token name input

@@ -7,10 +7,10 @@ interface AuraGeneratorProps {
   onImageGenerated: (imageData: string) => void;
 }
 
-export const AuraGenerator: React.FC<AuraGeneratorProps> = ({ 
-  moodSeed, 
-  transactionCount, 
-  onImageGenerated 
+const AuraGenerator: React.FC<AuraGeneratorProps> = ({
+  moodSeed,
+  transactionCount,
+  onImageGenerated
 }) => {
   const p5ContainerRef = useRef<HTMLDivElement>(null);
 
@@ -20,7 +20,6 @@ export const AuraGenerator: React.FC<AuraGeneratorProps> = ({
     const sketch = (p: any) => {
       let particles: any[] = [];
       let waveforms: any[] = [];
-      let backgroundHue = 0;
       
       // Advanced mood-based color palettes
       const moodPalettes: { [key: string]: number[][] } = {
@@ -49,7 +48,6 @@ export const AuraGenerator: React.FC<AuraGeneratorProps> = ({
         
         // Create sophisticated background
         const seedHash = moodSeed.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-        backgroundHue = seedHash % 360;
         
         const palette = getMoodPalette(moodSeed);
         const particleCount = Math.min(Math.max(transactionCount, 8) + 15, 50); // Cap for performance
@@ -222,8 +220,8 @@ export const AuraGenerator: React.FC<AuraGeneratorProps> = ({
 
   return (
     <div className="aura-generator-container">
-      <div 
-        ref={p5ContainerRef} 
+      <div
+        ref={p5ContainerRef}
         className="aura-canvas-container"
       />
       <div className="aura-metadata">
@@ -243,3 +241,5 @@ export const AuraGenerator: React.FC<AuraGeneratorProps> = ({
     </div>
   );
 };
+
+export default AuraGenerator;
