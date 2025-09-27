@@ -206,3 +206,34 @@ export const validateImageData = (imageData: string): ValidationResult => {
     };
   }
 };
+
+/**
+ * Device and wallet detection utilities
+ */
+
+/**
+ * Check if we're on a desktop device by analyzing user agent
+ * @returns {boolean} True if desktop device, false if mobile
+ */
+export const isDesktopDevice = (): boolean => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+  return !isMobile;
+};
+
+/**
+ * Check if Petra wallet extension is installed in the browser
+ * @returns {boolean} True if Petra wallet is detected, false otherwise
+ */
+export const isPetraWalletInstalled = (): boolean => {
+  return !!(window as any).aptos || !!(window as any).petra;
+};
+
+/**
+ * Redirect user to Petra wallet installation page
+ * Opens petra.app in a new tab for desktop users
+ */
+export const redirectToPetraInstall = (): void => {
+  const petraUrl = 'https://petra.app/';
+  window.open(petraUrl, '_blank');
+};

@@ -8,7 +8,10 @@ import {
   validateTransactionCount,
   validateNetworkConnection,
   validateWalletConnection,
-  validateImageData
+  validateImageData,
+  isDesktopDevice,
+  isPetraWalletInstalled,
+  redirectToPetraInstall
 } from './utils/validation';
 import './App.css';
 
@@ -114,12 +117,24 @@ function AuraMinterApp() {
     }
   };
 
+
   /**
-   * Handle wallet connection with error handling
+   * Handle wallet connection with error handling and desktop redirect
    */
   const handleConnect = async () => {
     // Check if wallet is already connecting
     if (loading) {
+      return;
+    }
+
+    // Check if Petra wallet is installed before attempting to connect (desktop only)
+    if (!isPetraWalletInstalled() && isDesktopDevice()) {
+      // On desktop, redirect to Petra installation page
+      showError(
+        'Petra wallet is not installed. Redirecting to installation page...', 
+        'info'
+      );
+      redirectToPetraInstall();
       return;
     }
 
@@ -139,6 +154,11 @@ function AuraMinterApp() {
         errorMessage = 'Wallet connection was cancelled by user.';
         errorType = 'warning';
       } else if (error?.message?.includes('not installed')) {
+        if (isDesktopDevice()) {
+          showError('Petra wallet is not installed. Redirecting to installation page...', 'info');
+          redirectToPetraInstall();
+          return;
+        }
         errorMessage = 'Petra wallet is not installed. Please install it first.';
       } else if (error?.message?.includes('network')) {
         errorMessage = 'Network error. Please check your connection and try again.';
@@ -146,6 +166,14 @@ function AuraMinterApp() {
         errorMessage = 'Connection timed out. Please try again.';
         errorType = 'warning';
       } else if (error?.name === 'WalletNotReadyError' || error?.name === 'WalletConnectionError') {
+        if (isDesktopDevice()) {
+          // Double-check if wallet is really installed
+          if (!isPetraWalletInstalled()) {
+            showError('Petra wallet is not installed. Redirecting to installation page...', 'info');
+            redirectToPetraInstall();
+            return;
+          }
+        }
         errorMessage = 'Wallet is not ready. Please make sure Petra wallet is properly installed and unlocked.';
         errorType = 'warning';
       }
