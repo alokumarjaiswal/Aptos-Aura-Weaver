@@ -1,31 +1,35 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
-import { Aptos, AptosConfig, Network } from '@aptos-labs/ts-sdk';
 import { WalletProvider } from './WalletProvider';
-import { getIPFSConfig, uploadToIPFS, createNFTMetadata } from './services/ipfsService';
-import {
-  validateMoodSeed,
-  validateTransactionCount,
-  validateNetworkConnection,
-  validateWalletConnection,
-  validateImageData,
-  isDesktopDevice,
-  isPetraWalletInstalled,
-  redirectToPetraInstall
-} from './utils/validation';
 import './App.css';
+import pxArtImage from './pxArt.png';
 
-// Lazy load the AuraGenerator component for better performance
-const AuraGenerator = React.lazy(() => import('./AuraGenerator'));
+// Lazy load components for better code splitting
+const AuraGenerator = lazy(() => import('./AuraGenerator'));
 
-const network = (process.env.REACT_APP_APTOS_NETWORK as Network) || Network.DEVNET;
-const nodeUrl = process.env.REACT_APP_APTOS_NODE_URL || undefined;
+// Lazy load heavy modules only when needed
+const loadAptosSDK = () => import('@aptos-labs/ts-sdk');
+const loadIPFSService = () => import('./services/ipfsService');
+const loadValidationUtils = () => import('./utils/validation');
 
-const config = new AptosConfig({
-  network,
-  fullnode: nodeUrl
-});
-const aptos = new Aptos(config);
+// Initialize Aptos SDK lazily
+let aptosInstance: any = null;
+let aptosConfig: any = null;
+
+const getAptosInstance = async () => {
+  if (!aptosInstance) {
+    const { Aptos, AptosConfig, Network } = await loadAptosSDK();
+    const network = (process.env.REACT_APP_APTOS_NETWORK as any) || Network.DEVNET;
+    const nodeUrl = process.env.REACT_APP_APTOS_NODE_URL || undefined;
+    
+    aptosConfig = new AptosConfig({
+      network,
+      fullnode: nodeUrl
+    });
+    aptosInstance = new Aptos(aptosConfig);
+  }
+  return aptosInstance;
+};
 
 
 function AuraMinterApp() {
@@ -57,6 +61,10 @@ function AuraMinterApp() {
    * Fetch user account data with enhanced error handling
    */
   const fetchUserData = async () => {
+    // Load validation utilities dynamically
+    const validationUtils = await loadValidationUtils();
+    const { validateWalletConnection, validateNetworkConnection, validateTransactionCount } = validationUtils;
+    
     // Validate wallet connection
     const walletValidation = validateWalletConnection(account?.address?.toString());
     if (!walletValidation.isValid) {
@@ -74,6 +82,7 @@ function AuraMinterApp() {
     setLoading(true);
     
     try {
+      const aptos = await getAptosInstance();
       const addressString = account!.address.toString();
       const accountData = await aptos.getAccountInfo({ accountAddress: addressString });
 
@@ -126,6 +135,10 @@ function AuraMinterApp() {
     if (loading) {
       return;
     }
+
+    // Load validation utilities dynamically
+    const validationUtils = await loadValidationUtils();
+    const { isPetraWalletInstalled, isDesktopDevice, redirectToPetraInstall } = validationUtils;
 
     // Check if Petra wallet is installed before attempting to connect (desktop only)
     if (!isPetraWalletInstalled() && isDesktopDevice()) {
@@ -196,6 +209,15 @@ function AuraMinterApp() {
    * Enhanced NFT minting with comprehensive validation and error handling
    */
   const mintNFT = async () => {
+    // Load validation utilities and IPFS service dynamically
+    const [validationUtils, ipfsService] = await Promise.all([
+      loadValidationUtils(),
+      loadIPFSService()
+    ]);
+    
+    const { validateWalletConnection, validateMoodSeed, validateTransactionCount, validateImageData } = validationUtils;
+    const { getIPFSConfig, uploadToIPFS, createNFTMetadata } = ipfsService;
+    
     // Validation checks
     const walletValidation = validateWalletConnection(account?.address?.toString());
     if (!walletValidation.isValid) {
@@ -275,10 +297,10 @@ function AuraMinterApp() {
 
         uri = metadataUpload.url!;
       
-      console.log('🎨 Minting NFT with parameters:', {
-        tokenName,
-        moodSeed,
-        transactionCount,
+        console.log('🎨 Minting NFT with parameters:', {
+          tokenName,
+          moodSeed,
+          transactionCount,
           uri,
           imageHash: imageUpload.hash,
           metadataHash: metadataUpload.hash
@@ -316,6 +338,7 @@ function AuraMinterApp() {
       console.log('🎨 Transaction submitted:', response.hash);
       
       // Wait for transaction to be processed
+      const aptos = await getAptosInstance();
       const txResult = await aptos.waitForTransaction({
         transactionHash: response.hash,
       });
@@ -425,7 +448,7 @@ function AuraMinterApp() {
         <header className="app-header">
           <div className="header-content">
             <div className="header-text">
-              <h1 className="app-title">Aptos Aura Weaver</h1>
+              <h1 className="app-title">APTOS AURA WEAVER</h1>
               <p className="app-subtitle">Generate your personalized aura NFT based on your on-chain activity</p>
             </div>
             <div className="header-actions">
@@ -437,13 +460,14 @@ function AuraMinterApp() {
 
           {!connected ? (
             <div className="wallet-connect-section">
-              <h3 className="wallet-connect-title">Connect Your Wallet</h3>
-              <p className="wallet-connect-description">Connect your Petra wallet to get started</p>
+              <div className="pixel-art-container">
+                <img src={pxArtImage} alt="Pixel Art Character" className="pixel-art-image" draggable="false" />
+              </div>
               <button 
                 onClick={handleConnect}
-                className="btn btn-primary"
+                className="btn btn-primary btn-connect-wallet"
               >
-                <svg width="20" height="19" viewBox="0 0 35 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg width="20" height="19" viewBox="0 0 35 33" fill="none" xmlns="http://www.w3.org/2000/svg" className="petra-svg">
                   <path fillRule="evenodd" clipRule="evenodd" d="M0 19.4667C0 8.94232 8.53168 0.410645 19.056 0.410645C33.0023 0.410645 39.6271 17.5875 29.2927 26.9522L24.4311 31.3576L15.654 23.3559L27.2291 12.2877H11.8771V32.1818H0V19.4667Z" fill="currentColor"/>
                 </svg>
                 Connect Petra Wallet
@@ -452,7 +476,7 @@ function AuraMinterApp() {
           ) : (
             <div>
               <div className="wallet-info">
-                <div className="wallet-address">
+                <div className="wallet-address selectable">
                   <strong>Connected:</strong> {account?.address?.toString()}
                 </div>
                 <button 
@@ -561,7 +585,7 @@ function AuraMinterApp() {
                         
                         <div className="share-preview">
                           <p className="share-preview-title">Preview:</p>
-                          <div className="share-preview-content">
+                          <div className="share-preview-content selectable">
                             {generateShareText().split('\n').map((line, index) => (
                               <div key={index}>{line || '\u00A0'}</div>
                             ))}

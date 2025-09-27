@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import p5 from 'p5';
+
+// Dynamically import p5 to reduce initial bundle size
+const loadP5 = () => import('p5');
 
 interface AuraGeneratorProps {
   moodSeed: string;
@@ -17,7 +19,13 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
   useEffect(() => {
     if (!p5ContainerRef.current || !moodSeed) return;
 
-    const sketch = (p: any) => {
+    let p5Instance: any = null;
+
+    const initializeP5 = async () => {
+      const p5Module = await loadP5();
+      const p5 = p5Module.default;
+
+      const sketch = (p: any) => {
       let particles: any[] = [];
       let waveforms: any[] = [];
       
@@ -206,15 +214,23 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
         p.pop();
       };
 
-      p.draw = () => {
-        drawAura();
+        p.draw = () => {
+          drawAura();
+        };
       };
+
+      if (p5ContainerRef.current) {
+        p5Instance = new p5(sketch, p5ContainerRef.current);
+      }
     };
 
-    const p5Instance = new p5(sketch, p5ContainerRef.current);
+    // Initialize p5 asynchronously
+    initializeP5().catch(console.error);
 
     return () => {
-      p5Instance.remove();
+      if (p5Instance) {
+        p5Instance.remove();
+      }
     };
   }, [moodSeed, transactionCount, onImageGenerated]);
 

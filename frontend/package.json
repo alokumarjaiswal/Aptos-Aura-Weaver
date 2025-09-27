@@ -50,8 +50,10 @@
       "last 1 safari version"
     ]
   },
+  "sideEffects": false,
   "devDependencies": {
     "@craco/craco": "^7.1.0",
-    "gh-pages": "^6.3.0"
+    "gh-pages": "^6.3.0",
+    "terser-webpack-plugin": "^5.3.14"
   }
 }
