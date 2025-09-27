@@ -2,19 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    
+    <!-- Favicon for legacy browsers -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon/favicon.svg" type="image/svg+xml" />
+    
+    <!-- Modern favicon -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon/favicon-96x96.png" sizes="96x96" type="image/png" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/favicon/apple-touch-icon.png" sizes="180x180" />
+    
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileImage" content="%PUBLIC_URL%/favicon/ms-icon.png" />
+    <meta name="msapplication-TileColor" content="#007AFF" />
+    
+    <!-- Viewport and theme -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#007AFF" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+    <!-- App description -->
     <meta
       name="description"
       content="Generate your personalized aura NFT based on your on-chain activity. Beautiful, smooth, and uniquely yours."
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/site.webmanifest" />
     <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.

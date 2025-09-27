@@ -13,18 +13,11 @@ export interface WalletState {
   signAndSubmitTransaction: (transaction: any) => Promise<any>;
 }
 
-export interface NotificationHandlers {
-  addNotification: (notification: any) => void;
-  showError: (message: string, type?: 'error' | 'warning' | 'info', category?: string) => void;
-  showSuccess: (title: string, message: string, category?: string, metadata?: any) => void;
-}
-
 export interface AppState {
   moodSeed: string;
   transactionCount: number;
   imageData: string;
   loading: boolean;
-  isNotificationCenterOpen: boolean;
 }
 
 export interface ValidationResult {
