@@ -1,0 +1,32 @@
+{
+  "name": "Aptos Aura Weaver - Personalized NFT Generator",
+  "short_name": "Aura Weaver",
+  "description": "Generate your personalized aura NFT based on your on-chain activity. Beautiful, smooth, and uniquely yours.",
+  "icons": [
+    {
+      "src": "../favicon/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../favicon/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../favicon/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "./",
+  "theme_color": "#007AFF",
+  "background_color": "#000000",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities", "finance"],
+  "lang": "en"
+}

@@ -1,19 +1,19 @@
 {
   "files": {
-    "main.css": "/Aptos-Aura-Weaver/static/css/main.c8a5180e.css",
-    "main.js": "/Aptos-Aura-Weaver/static/js/main.7ac3c8d0.js",
+    "main.css": "/Aptos-Aura-Weaver/static/css/main.bcbac1f9.css",
+    "main.js": "/Aptos-Aura-Weaver/static/js/main.23c1a67c.js",
     "static/js/990.ffde847c.chunk.js": "/Aptos-Aura-Weaver/static/js/990.ffde847c.chunk.js",
     "static/js/453.68e6e1d7.chunk.js": "/Aptos-Aura-Weaver/static/js/453.68e6e1d7.chunk.js",
     "static/js/538.26f9443e.chunk.js": "/Aptos-Aura-Weaver/static/js/538.26f9443e.chunk.js",
     "index.html": "/Aptos-Aura-Weaver/index.html",
-    "main.c8a5180e.css.map": "/Aptos-Aura-Weaver/static/css/main.c8a5180e.css.map",
-    "main.7ac3c8d0.js.map": "/Aptos-Aura-Weaver/static/js/main.7ac3c8d0.js.map",
+    "main.bcbac1f9.css.map": "/Aptos-Aura-Weaver/static/css/main.bcbac1f9.css.map",
+    "main.23c1a67c.js.map": "/Aptos-Aura-Weaver/static/js/main.23c1a67c.js.map",
     "990.ffde847c.chunk.js.map": "/Aptos-Aura-Weaver/static/js/990.ffde847c.chunk.js.map",
     "453.68e6e1d7.chunk.js.map": "/Aptos-Aura-Weaver/static/js/453.68e6e1d7.chunk.js.map",
     "538.26f9443e.chunk.js.map": "/Aptos-Aura-Weaver/static/js/538.26f9443e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.c8a5180e.css",
-    "static/js/main.7ac3c8d0.js"
+    "static/css/main.bcbac1f9.css",
+    "static/js/main.23c1a67c.js"
   ]
 }
