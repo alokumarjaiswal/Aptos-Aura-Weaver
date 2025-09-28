@@ -95,7 +95,7 @@ textarea,
 /* Header Section - Ultra Minimal */
 .app-header {
   background: transparent;
-  padding: var(--spacing-3xl) var(--spacing-2xl) var(--spacing-sm);
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-xs);
   position: relative;
   flex-shrink: 0;
 }
@@ -118,9 +118,9 @@ textarea,
 }
 
 .app-title {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: var(--font-weight-medium);
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-sm);
   margin-bottom: var(--spacing-xs);
   letter-spacing: -0.8px;
   line-height: 1.1;
@@ -151,11 +151,12 @@ textarea,
 
 /* Main Content Area */
 .main-content {
-  padding: var(--spacing-lg) var(--spacing-2xl);
+  padding: 0;
   background: transparent;
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Ultra-Minimal Buttons */
@@ -299,6 +300,7 @@ textarea,
   letter-spacing: 1px;
   text-transform: uppercase;
   border: none !important;
+  border-radius: 6px;
   position: relative;
   overflow: hidden;
   animation: float 3s ease-in-out infinite, glowPulse 2s ease-in-out infinite alternate;
@@ -337,6 +339,7 @@ textarea,
 
 .btn-connect-wallet:hover {
   animation: float 1.5s ease-in-out infinite, glowPulse 1s ease-in-out infinite alternate;
+  border-radius: 0;
   box-shadow: 
     0 0 15px rgba(0, 122, 255, 0.25),
     0 0 30px rgba(0, 122, 255, 0.15),
@@ -348,8 +351,26 @@ textarea,
   opacity: 1;
 }
 
-.btn-connect-wallet:active {
+.btn-connect-wallet:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
   animation: none;
+  transform: none !important;
+  pointer-events: none;
+}
+
+.btn-connect-wallet:disabled:hover {
+  animation: none;
+  border-radius: 12px;
+  box-shadow: 
+    0 0 10px rgba(0, 122, 255, 0.15),
+    0 0 20px rgba(0, 122, 255, 0.1),
+    0 0 30px rgba(0, 122, 255, 0.05),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.btn-connect-wallet:disabled:hover::before {
+  opacity: 0;
 }
 
 /* Petra SVG Animations */
@@ -458,7 +479,6 @@ textarea,
   -khtml-user-drag: none;
   -moz-user-drag: none;
   -o-user-drag: none;
-  user-drag: none;
   pointer-events: auto;
 }
 
@@ -1008,33 +1028,281 @@ textarea,
   }
 }
 
-/* Aura Generator Loading Fallback */
-.aura-loading-fallback {
+/* Back Button */
+.back-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-label-primary);
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--color-label-primary);
+}
+
+/* Landing Page Styles */
+.landing-section {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 400px;
-  height: 400px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: var(--radius-xl);
-  backdrop-filter: blur(20px);
-  color: var(--color-text-primary);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  text-align: center;
+  gap: var(--spacing-xl);
+  flex: 1;
 }
 
-.aura-loading-fallback .loading-spinner {
+.landing-title {
+  font-size: var(--font-size-title-2);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-label-primary);
+  margin-bottom: var(--spacing-lg);
+  letter-spacing: -0.4px;
+}
+
+.landing-description {
+  font-size: var(--font-size-body);
+  color: var(--color-label-secondary);
+  line-height: 1.6;
+  max-width: 500px;
+  margin: 0 auto var(--spacing-2xl);
+}
+
+.landing-features {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-subhead);
+  color: var(--color-label-secondary);
+  backdrop-filter: blur(10px);
+}
+
+.feature-icon {
+  font-size: var(--font-size-title-3);
+}
+
+/* Wallet Page Grid Layout */
+.wallet-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  max-width: 100%;
+  padding: var(--spacing-md);
+  height: 100%;
+  overflow: hidden;
+}
+
+.wallet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: var(--spacing-md);
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.wallet-info-card.compact,
+.data-section.compact {
+  padding: var(--spacing-sm);
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+}
+
+.mood-section.full-width {
+  grid-column: 1 / -1;
+  padding: var(--spacing-sm);
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: fit-content;
+}
+
+/* Compact styles */
+.section-title.compact {
+  font-size: var(--font-size-subhead);
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-label-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.wallet-address.selectable.compact {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-caption-1);
+  background: transparent;
+  padding: var(--spacing-xs);
+  border-radius: 0;
+  margin-bottom: var(--spacing-xs);
+  word-break: break-all;
+  border: none;
+  flex: 1;
+}
+
+.btn.compact {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-caption-1);
+  min-height: 28px;
+  width: 100%;
+}
+
+.fetch-data-row.compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  align-items: stretch;
+  height: 100%;
+}
+
+.status-indicator.compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-xs);
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  font-size: var(--font-size-caption-1);
+  flex: 1;
+}
+
+.status-indicator.compact.status-success {
+  background: transparent;
+  border: none;
+  color: var(--color-success);
+}
+
+.input-group.compact {
+  margin-bottom: var(--spacing-sm);
+  flex: 1;
+}
+
+.input-label.compact {
+  display: block;
+  font-size: var(--font-size-caption-1);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-label-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input.compact {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-label-primary);
+  font-size: var(--font-size-body);
+  transition: border-color var(--transition-fast);
+  flex: 1;
+}
+
+.form-input.compact:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: none;
+}
+
+.circular-refresh-btn {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--color-separator-opaque);
-  border-top: 3px solid var(--color-accent-primary);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: var(--spacing-md);
+  background: transparent;
+  border: none;
+  color: var(--color-label-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: none;
+  position: relative;
+  overflow: hidden;
+  outline: none;
 }
 
-.aura-loading-fallback p {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  opacity: 0.8;
-  text-align: center;
+.circular-refresh-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.circular-refresh-btn:active {
+  outline: none;
+  box-shadow: none;
+}
+
+.circular-refresh-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 50%;
+}
+
+.circular-refresh-btn:hover::before {
+  opacity: 0;
+}
+
+.circular-refresh-btn:hover {
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+
+.circular-refresh-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none !important;
+}
+
+.circular-refresh-btn:disabled:hover {
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+
+.circular-refresh-btn:disabled:hover::before {
+  opacity: 0;
+}
+
+/* SVG Rotation Animation */
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
