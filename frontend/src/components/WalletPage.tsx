@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import Header from '../components/Header';
@@ -10,8 +10,9 @@ const WalletPage: React.FC = () => {
   const { state, setMoodSeed, setTransactionCount, setLoading } = useAppContext();
   const [localLoading, setLocalLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [autoFetched, setAutoFetched] = useState(false);
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     if (!account?.address) return;
 
     setLocalLoading(true);
@@ -61,7 +62,23 @@ const WalletPage: React.FC = () => {
       setLocalLoading(false);
       setLoading(false);
     }
-  };
+  }, [account, setTransactionCount, setLoading]);
+
+  // Auto-fetch transaction data when wallet is connected
+  useEffect(() => {
+    if (account?.address && !autoFetched && state.transactionCount === 0 && !localLoading) {
+      console.log('Auto-fetching transaction data for connected wallet...');
+      setAutoFetched(true);
+      fetchUserData();
+    }
+  }, [account?.address, autoFetched, state.transactionCount, localLoading, fetchUserData]);
+
+  // Reset auto-fetch state when wallet disconnects
+  useEffect(() => {
+    if (!account?.address) {
+      setAutoFetched(false);
+    }
+  }, [account?.address]);
 
   const handleContinue = () => {
     if (state.moodSeed.trim()) {
@@ -134,10 +151,13 @@ const WalletPage: React.FC = () => {
                 
                 <div className="data-fetch-section">
                   <button
-                    onClick={fetchUserData}
+                    onClick={() => {
+                      setAutoFetched(false);
+                      fetchUserData();
+                    }}
                     disabled={localLoading}
                     className="sync-btn"
-                    title="Sync"
+                    title="Refresh transaction data"
                   >
                     <svg className={`sync-icon ${localLoading ? 'rotating' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="23,4 23,10 17,10"></polyline>

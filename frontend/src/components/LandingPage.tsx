@@ -2,17 +2,30 @@ import React from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import Header from '../components/Header';
 import pxArtImage from '../pxArt.png';
+import { isPetraWalletInstalled, redirectToPetraInstall } from '../utils/validation';
 
 const LandingPage: React.FC = () => {
   const { connect } = useWallet();
 
   const handleConnect = async () => {
+    // Check if Petra wallet is installed first
+    if (!isPetraWalletInstalled()) {
+      redirectToPetraInstall();
+      return;
+    }
+
     try {
       await connect('Petra');
       // Navigation will be handled by wallet state change in App.tsx
-    } catch (error) {
+    } catch (error: any) {
       console.error('Wallet connection error:', error);
-      alert('Failed to connect wallet. Please try again.');
+      
+      // Check if the error might be due to Petra not being installed
+      if (error?.message?.includes('No provider') || error?.message?.includes('not found')) {
+        redirectToPetraInstall();
+      } else {
+        alert('Failed to connect wallet. Please make sure Petra wallet is unlocked and try again.');
+      }
     }
   };
 

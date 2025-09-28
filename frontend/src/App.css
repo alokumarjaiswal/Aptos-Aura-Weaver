@@ -1670,6 +1670,43 @@ textarea,
   font-size: 0.875rem;
   font-family: 'Bitcount Single Ink', sans-serif;
   font-weight: 1100;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.auto-synced-indicator {
+  color: #4ade80;
+  font-size: 0.75rem;
+  animation: fadeInCheck 0.5s ease-out;
+}
+
+@keyframes fadeInCheck {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.auto-fetch-message {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  margin-top: 8px;
+  text-align: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes syncPulse {
