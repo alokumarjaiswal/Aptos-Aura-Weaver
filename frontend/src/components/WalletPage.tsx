@@ -9,6 +9,7 @@ const WalletPage: React.FC = () => {
   const navigate = useNavigate();
   const { state, setMoodSeed, setTransactionCount, setLoading } = useAppContext();
   const [localLoading, setLocalLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fetchUserData = async () => {
     if (!account?.address) return;
@@ -70,86 +71,94 @@ const WalletPage: React.FC = () => {
     }
   };
 
+  const handleCopyAddress = async () => {
+    if (account?.address) {
+      try {
+        await navigator.clipboard.writeText(account.address.toString());
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (error) {
+        console.error('Failed to copy address:', error);
+      }
+    }
+  };
+
   return (
     <div className="app-container">
       <div className="app-content">
         <Header />
-
+        
         <main className="main-content">
           <div className="wallet-section">
-            <div className="wallet-grid">
-              {/* Top row: Wallet info and data fetching */}
-              <div className="wallet-info-card compact">
-                <div className="wallet-address selectable compact">
-                  <strong>Address:</strong> {account?.address?.toString()}
+            <div className="wallet-main">
+              <div className="wallet-header-info">
+                <div className="wallet-address-display">
+                  <span 
+                    className={`address-value ${copied ? 'copied' : ''}`} 
+                    onClick={handleCopyAddress}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {account?.address?.toString()}
+                    <svg className="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <svg className={`checkmark-icon ${copied ? 'visible' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20,6 9,17 4,12"></polyline>
+                    </svg>
+                  </span>
                 </div>
                 <button
                   onClick={disconnect}
-                  className="btn btn-danger compact"
+                  className="disconnect-btn"
+                  title="Disconnect Wallet"
                 >
-                  Disconnect
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
                 </button>
               </div>
-
-              <div className="data-section compact">
-                <div className="fetch-data-row compact">
-                  <button
-                    onClick={fetchUserData}
-                    disabled={localLoading}
-                    className={`circular-refresh-btn ${localLoading ? 'loading' : ''}`}
-                    title="Fetch Account Data"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 33 32" fill="none" className={localLoading ? 'rotating' : ''}>
-                      <path d="M29.8002 12.19H28.2802V19.81H29.8002V12.19Z" fill="currentColor"/>
-                      <path d="M28.2801 19.81H26.7601V22.86H28.2801V19.81Z" fill="currentColor"/>
-                      <path d="M28.2801 9.14H26.7601V12.19H28.2801V9.14Z" fill="currentColor"/>
-                      <path d="M28.2802 7.62V6.1H29.8002V4.57H22.1802V12.19H23.7102V10.67H25.2302V9.14H26.7602V7.62H28.2802Z" fill="currentColor"/>
-                      <path d="M26.7601 22.86H25.2301V24.38H26.7601V22.86Z" fill="currentColor"/>
-                      <path d="M25.2302 24.38H23.7102V25.91H25.2302V24.38Z" fill="currentColor"/>
-                      <path d="M23.7102 25.91H20.6602V27.43H23.7102V25.91Z" fill="currentColor"/>
-                      <path d="M20.6602 27.43H14.5602V28.95H20.6602V27.43Z" fill="currentColor"/>
-                      <path d="M19.1402 3.05H13.0402V4.57H19.1402V3.05Z" fill="currentColor"/>
-                      <path d="M13.0401 4.57H9.99011V6.1H13.0401V4.57Z" fill="currentColor"/>
-                      <path d="M9.99009 6.10001H8.47009V7.62001H9.99009V6.10001Z" fill="currentColor"/>
-                      <path d="M8.4702 7.62H6.9502V9.14H8.4702V7.62Z" fill="currentColor"/>
-                      <path d="M5.42015 24.38V25.91H3.90015V27.43H11.5201V19.81H9.99015V21.33H8.47015V22.86H6.95015V24.38H5.42015Z" fill="currentColor"/>
-                      <path d="M6.95017 19.81H5.42017V22.86H6.95017V19.81Z" fill="currentColor"/>
-                      <path d="M6.95017 9.14H5.42017V12.19H6.95017V9.14Z" fill="currentColor"/>
-                      <path d="M5.42015 12.19H3.90015V19.81H5.42015V12.19Z" fill="currentColor"/>
-                    </svg>
-                  </button>
-
-                  <div className={`status-indicator compact ${state.transactionCount > 0 ? 'status-success' : ''}`}>
-                    <strong>Tx Count:</strong> {state.transactionCount}
-                    {state.transactionCount > 0 && <span>✓</span>}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom row: Mood input spanning full width */}
-              <div className="mood-section full-width">
-                <div className="input-group compact">
-                  <label className="input-label compact">
-                    Mood Seed
-                  </label>
+              
+              <div className="mood-input-section">
+                <div className="mood-input-container">
+                  <label className="mood-label">Your Mood Seed</label>
                   <input
                     type="text"
                     value={state.moodSeed}
                     onChange={(e) => setMoodSeed(e.target.value)}
-                    placeholder="Enter your mood (e.g., 'happy 😊', 'calm 🌊', 'energetic ⚡')"
-                    className="form-input compact"
+                    placeholder="Describe your current mood..."
+                    className="mood-input"
                   />
                 </div>
-
-                <div className="continue-section">
+                
+                <div className="data-fetch-section">
                   <button
-                    onClick={handleContinue}
-                    disabled={!state.moodSeed.trim() || state.transactionCount < 0}
-                    className="btn btn-primary btn-connect-wallet"
+                    onClick={fetchUserData}
+                    disabled={localLoading}
+                    className="fetch-btn"
                   >
-                    Generate My Aura
+                    <svg className={localLoading ? 'rotating' : ''} width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 4V8H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M20 20V16H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M4 20L9 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M20 4L15 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="fetch-text">Sync Data</span>
+                    <span className="tx-count">Tx: {state.transactionCount}</span>
                   </button>
                 </div>
+              </div>
+              
+              <div className="generate-section">
+                <button
+                  onClick={handleContinue}
+                  disabled={!state.moodSeed.trim() || state.transactionCount < 0}
+                  className="generate-btn"
+                >
+                  <span className="generate-text">Generate My Aura</span>
+                  <div className="generate-glow"></div>
+                </button>
               </div>
             </div>
           </div>
