@@ -1,5 +1,4 @@
-import React, { Suspense, lazy } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { Suspense, lazy, useCallback } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import Header from '../components/Header';
 import { useAppContext } from '../contexts/AppContext';
@@ -9,12 +8,12 @@ const AuraGenerator = lazy(() => import('../AuraGenerator'));
 
 const AuraPage: React.FC = () => {
   const { account, signAndSubmitTransaction } = useWallet();
-  const navigate = useNavigate();
   const { state, setImageData, setLoading } = useAppContext();
 
-  const handleBack = () => {
-    navigate('/wallet');
-  };
+  // Memoize the image callback to prevent unnecessary re-renders
+  const handleImageGenerated = useCallback((imageData: string) => {
+    setImageData(imageData);
+  }, [setImageData]);
 
   const showError = (message: string, type: 'error' | 'warning' | 'info' = 'error') => {
     console.error(`${type.toUpperCase()}: ${message}`);
@@ -210,34 +209,7 @@ const AuraPage: React.FC = () => {
     }
   };
 
-  const generateShareText = (): string => {
-    const rarity = state.transactionCount > 1000 ? 'Legendary' :
-                  state.transactionCount > 100 ? 'Epic' :
-                  state.transactionCount > 50 ? 'Rare' : 'Common';
 
-    return `🌟 Just created my personalized Aura NFT on @Aptos!
-
-✨ Mood: "${state.moodSeed}"
-🔗 ${state.transactionCount} transactions analyzed
-🎨 Rarity: ${rarity}
-
-#AptosAura #NFT #Web3 #PersonalizedNFT`;
-  };
-
-  const shareOnTwitter = () => {
-    const text = encodeURIComponent(generateShareText());
-    const url = `https://twitter.com/intent/tweet?text=${text}`;
-    window.open(url, '_blank', 'width=600,height=400');
-  };
-
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(generateShareText());
-      showSuccess('Copied to Clipboard', 'Share text copied successfully!');
-    } catch (error) {
-      showError('Failed to copy to clipboard', 'warning');
-    }
-  };
 
   const downloadAura = () => {
     if (!state.imageData) {
@@ -263,12 +235,11 @@ const AuraPage: React.FC = () => {
   return (
     <div className="app-container">
       <div className="app-content">
-        <Header showBackButton={true} onBackClick={handleBack} />
+        <Header />
 
-        <main className="main-content">
-          <div className="aura-section">
-            <h3 className="aura-title">Your Personal Aura</h3>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+        <main className="main-content aura-main-content">
+          <div className="aura-section aura-section-compact">
+            <div className="aura-generator-wrapper">
               <Suspense fallback={
                 <div className="aura-loading-fallback">
                   <div className="loading-spinner"></div>
@@ -278,75 +249,45 @@ const AuraPage: React.FC = () => {
                 <AuraGenerator
                   moodSeed={state.moodSeed}
                   transactionCount={state.transactionCount}
-                  onImageGenerated={setImageData}
+                  onImageGenerated={handleImageGenerated}
                 />
               </Suspense>
             </div>
 
             {state.imageData && (
-              <div>
-                <p className="aura-description">
-                  Your unique aura generated from <strong>{state.transactionCount}</strong> transactions and mood <strong>"{state.moodSeed}"</strong>
-                </p>
-
+              <div className="aura-content-wrapper">
                 {/* Action Buttons */}
-                <div className="action-buttons">
+                <div className="action-buttons action-buttons-compact">
                   <button
                     onClick={mintNFT}
                     disabled={state.loading}
-                    className={`btn btn-mint ${state.loading ? 'loading' : ''}`}
+                    className={`btn btn-primary btn-connect-wallet ${state.loading ? 'loading' : ''}`}
                   >
                     {state.loading && <span className="loading-spinner"></span>}
-                    {state.loading ? 'Minting...' : '🎨 Mint as NFT'}
+                    <span className="generate-text">{state.loading ? 'Minting...' : 'Mint as NFT'}</span>
+                    <div className="generate-glow"></div>
                   </button>
 
                   <button
                     onClick={downloadAura}
-                    className="btn btn-secondary"
+                    className="btn btn-primary btn-connect-wallet btn-download-aura"
                     title="Download your aura as PNG"
                   >
-                    📥 Download
+                    <span className="generate-text">Download</span>
+                    <div className="generate-glow"></div>
                   </button>
                 </div>
 
-                {/* Social Sharing */}
-                <div className="social-sharing">
-                  <h4 className="social-title">Share Your Aura</h4>
-                  <div className="social-buttons">
-                    <button
-                      onClick={shareOnTwitter}
-                      className="btn btn-social btn-twitter"
-                      title="Share on Twitter/X"
-                    >
-                      🐦 Share on X
-                    </button>
-
-                    <button
-                      onClick={copyToClipboard}
-                      className="btn btn-social btn-copy"
-                      title="Copy share text to clipboard"
-                    >
-                      📋 Copy Text
-                    </button>
-                  </div>
-
-                  <div className="share-preview">
-                    <p className="share-preview-title">Preview:</p>
-                    <div className="share-preview-content selectable">
-                      {generateShareText().split('\n').map((line, index) => (
-                        <div key={index}>{line || '\u00A0'}</div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <p className="mvp-note">
-                  🎉 Live on Aptos Devnet! Your NFTs will be minted on-chain.
-                </p>
               </div>
             )}
           </div>
         </main>
+        
+        <footer className="mvp-footer">
+          <p className="mvp-note mvp-note-compact">
+           Live on Aptos Devnet! Your NFTs will be minted on-chain.
+          </p>
+        </footer>
       </div>
     </div>
   );

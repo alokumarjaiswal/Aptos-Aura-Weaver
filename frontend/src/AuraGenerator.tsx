@@ -15,11 +15,29 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
   onImageGenerated
 }) => {
   const p5ContainerRef = useRef<HTMLDivElement>(null);
+  const p5InstanceRef = useRef<any>(null);
+  const isGeneratingRef = useRef<boolean>(false);
+  const hasGeneratedRef = useRef<boolean>(false);
+  const onImageGeneratedRef = useRef(onImageGenerated);
+
+  // Update callback ref when it changes
+  useEffect(() => {
+    onImageGeneratedRef.current = onImageGenerated;
+  }, [onImageGenerated]);
 
   useEffect(() => {
-    if (!p5ContainerRef.current || !moodSeed) return;
-
-    let p5Instance: any = null;
+    // Prevent multiple generations
+    if (!p5ContainerRef.current || !moodSeed || isGeneratingRef.current) return;
+    
+    // Clean up existing instance
+    if (p5InstanceRef.current) {
+      p5InstanceRef.current.remove();
+      p5InstanceRef.current = null;
+    }
+    
+    // Reset generation state
+    hasGeneratedRef.current = false;
+    isGeneratingRef.current = true;
 
     const initializeP5 = async () => {
       const p5Module = await loadP5();
@@ -50,17 +68,17 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
         return moodPalettes.default;
       };
       
+      // Calculate seed hash for deterministic generation
+      const seedHash = moodSeed.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+      const palette = getMoodPalette(moodSeed);
+      
       p.setup = () => {
-        const canvas = p.createCanvas(400, 400);
+        const canvas = p.createCanvas(150, 150);
         p.colorMode(p.RGB);
         
-        // Create sophisticated background
-        const seedHash = moodSeed.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+        const particleCount = Math.min(Math.max(transactionCount, 5) + 10, 35); // Reduced for static generation
         
-        const palette = getMoodPalette(moodSeed);
-        const particleCount = Math.min(Math.max(transactionCount, 8) + 15, 50); // Cap for performance
-        
-        // Generate main particles with enhanced properties
+        // Generate static particles with deterministic properties
         for (let i = 0; i < particleCount; i++) {
           const colorIndex = i % palette.length;
           const [r, g, b] = palette[colorIndex];
@@ -68,67 +86,72 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
           particles.push({
             x: p.width / 2,
             y: p.height / 2,
-            angle: (i / particleCount) * p.TWO_PI + (seedHash * 0.1),
-            baseRadius: 60 + (i % 4) * 30,
-            radiusVariation: 20 + (i % 3) * 15,
-            size: 6 + (i % 4) * 3,
-            r: Math.min(255, r + (seedHash + i * 31) % 50),
-            g: Math.min(255, g + (seedHash + i * 47) % 50),
-            b: Math.min(255, b + (seedHash + i * 67) % 50),
-            speed: 0.015 + (i % 4) * 0.008,
-            phaseOffset: i * 0.3,
+            angle: (i / particleCount) * p.TWO_PI + (seedHash * 0.01),
+            baseRadius: 40 + (i % 4) * 20,
+            radiusVariation: 15 + (i % 3) * 10,
+            size: 4 + (i % 3) * 2,
+            r: Math.min(255, r + (seedHash + i * 23) % 40),
+            g: Math.min(255, g + (seedHash + i * 37) % 40),
+            b: Math.min(255, b + (seedHash + i * 41) % 40),
+            phaseOffset: i * 0.2,
             type: i % 3 // 0: orbiting, 1: spiral, 2: wave
           });
         }
         
-        // Generate background waveforms
-        const waveCount = Math.floor(transactionCount / 10) + 3;
-        for (let i = 0; i < Math.min(waveCount, 8); i++) {
+        // Generate static background waveforms
+        const waveCount = Math.floor(transactionCount / 15) + 2;
+        for (let i = 0; i < Math.min(waveCount, 5); i++) {
           waveforms.push({
-            amplitude: 30 + i * 10,
-            frequency: 0.02 + i * 0.01,
-            phase: i * p.PI * 0.5,
+            amplitude: 20 + i * 8,
+            phase: i * p.PI * 0.4 + seedHash * 0.01,
             color: palette[i % palette.length],
-            alpha: 30 + i * 10
+            alpha: 25 + i * 8
           });
         }
         
         console.log(`Generated ${particles.length} particles and ${waveforms.length} waveforms`);
         
-        // Draw initial frame
-        drawAura();
+        // Draw static aura once
+        drawStaticAura();
         
-        // Capture image after a brief animation
-        setTimeout(() => {
-          const imageData = canvas.canvas.toDataURL('image/png');
-          onImageGenerated(imageData);
-          console.log('Enhanced aura captured');
-        }, 500);
+        // Capture image after brief delay for rendering (only once)
+        if (!hasGeneratedRef.current) {
+          hasGeneratedRef.current = true;
+          setTimeout(() => {
+            if (canvas && canvas.canvas) {
+              const imageData = canvas.canvas.toDataURL('image/png');
+              onImageGeneratedRef.current(imageData);
+              console.log('Static aura captured successfully');
+            }
+            isGeneratingRef.current = false;
+          }, 150);
+        }
       };
 
-      const drawAura = () => {
-        // Dynamic gradient background
-        const time = p.millis() * 0.001;
+      const drawStaticAura = () => {
+        // Clear background
+        p.background(0);
         
-        // Create radial gradient background
-        for (let r = 400; r > 0; r -= 2) {
-          const inter = p.map(r, 0, 400, 0, 1);
-          const alpha = 255 * (1 - inter * 0.8);
-          p.fill(10 + Math.sin(time * 0.5) * 20, 15 + Math.cos(time * 0.3) * 25, 25 + Math.sin(time * 0.7) * 30, alpha * 0.3);
+        // Create static radial gradient background
+        for (let r = 150; r > 0; r -= 3) {
+          const inter = p.map(r, 0, 150, 0, 1);
+          const alpha = 255 * (1 - inter * 0.7);
+          const baseColor = palette[0];
+          p.fill(baseColor[0] * 0.15, baseColor[1] * 0.15, baseColor[2] * 0.15, alpha * 0.3);
           p.noStroke();
           p.ellipse(p.width / 2, p.height / 2, r, r);
         }
         
-        // Draw background waveforms
+        // Draw static background waveforms
         waveforms.forEach((wave, index) => {
           const [r, g, b] = wave.color;
-          p.stroke(r, g, b, wave.alpha);
-          p.strokeWeight(2);
+          p.stroke(r, g, b, wave.alpha * 0.5);
+          p.strokeWeight(1);
           p.noFill();
           
           p.beginShape();
-          for (let angle = 0; angle < p.TWO_PI; angle += 0.1) {
-            const radius = 100 + wave.amplitude * Math.sin(angle * 3 + time * wave.frequency + wave.phase);
+          for (let angle = 0; angle < p.TWO_PI; angle += 0.2) {
+            const radius = 50 + wave.amplitude * Math.sin(angle * 2 + wave.phase);
             const x = p.width / 2 + Math.cos(angle) * radius;
             const y = p.height / 2 + Math.sin(angle) * radius;
             p.vertex(x, y);
@@ -136,103 +159,107 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
           p.endShape(p.CLOSE);
         });
         
-        // Draw enhanced particles
+        // Draw static particles
         particles.forEach((particle, i) => {
           let x, y;
           
           if (particle.type === 0) {
-            // Orbiting particles
-            const radius = particle.baseRadius + Math.sin(time * particle.speed + particle.phaseOffset) * particle.radiusVariation;
-            x = Math.cos(particle.angle + time * particle.speed) * radius;
-            y = Math.sin(particle.angle + time * particle.speed) * radius;
+            // Static orbiting position
+            const radius = particle.baseRadius + Math.sin(particle.phaseOffset + seedHash * 0.01) * particle.radiusVariation * 0.5;
+            x = Math.cos(particle.angle + seedHash * 0.001) * radius;
+            y = Math.sin(particle.angle + seedHash * 0.001) * radius;
           } else if (particle.type === 1) {
-            // Spiral particles
-            const spiralRadius = particle.baseRadius + time * 10;
-            const spiralAngle = particle.angle + time * particle.speed * 2;
-            x = Math.cos(spiralAngle) * (spiralRadius % 150);
-            y = Math.sin(spiralAngle) * (spiralRadius % 150);
+            // Static spiral position
+            const spiralRadius = particle.baseRadius + (i * 5) % 40;
+            const spiralAngle = particle.angle + (i * 0.3);
+            x = Math.cos(spiralAngle) * spiralRadius;
+            y = Math.sin(spiralAngle) * spiralRadius;
           } else {
-            // Wave-like motion
-            const waveRadius = particle.baseRadius + Math.sin(time * particle.speed * 3 + particle.phaseOffset) * 40;
-            x = Math.cos(particle.angle + time * particle.speed) * waveRadius;
-            y = Math.sin(particle.angle + time * particle.speed * 1.5) * waveRadius;
+            // Static wave position
+            const waveRadius = particle.baseRadius + Math.sin(particle.phaseOffset + i * 0.5) * 25;
+            x = Math.cos(particle.angle) * waveRadius;
+            y = Math.sin(particle.angle) * waveRadius;
           }
           
-          // Pulsating size with more complex pattern
-          const pulse1 = (Math.sin(time * 2 + i * 0.5) + 1) * 0.5;
-          const pulse2 = (Math.cos(time * 1.5 + i * 0.3) + 1) * 0.3;
-          const size = particle.size + pulse1 * 4 + pulse2 * 2;
+          // Static size based on particle properties
+          const staticVariation = Math.sin(seedHash * 0.01 + i * 0.3) * 0.5 + 0.5;
+          const size = particle.size + staticVariation * 3;
           
-          // Draw particle with glow effect
+          // Draw static particle with glow effect
           p.push();
           p.translate(p.width / 2, p.height / 2);
           
           // Outer glow
-          for (let glow = 3; glow > 0; glow--) {
-            const alpha = 80 / glow;
+          for (let glow = 2; glow > 0; glow--) {
+            const alpha = 60 / glow;
             p.fill(particle.r, particle.g, particle.b, alpha);
             p.noStroke();
-            p.ellipse(x, y, size + glow * 3, size + glow * 3);
+            p.ellipse(x, y, size + glow * 2, size + glow * 2);
           }
           
           // Main particle
-          p.fill(particle.r, particle.g, particle.b, 220);
+          p.fill(particle.r, particle.g, particle.b, 200);
           p.noStroke();
           p.ellipse(x, y, size, size);
           
           // Inner highlight
-          p.fill(255, 255, 255, 100);
-          p.ellipse(x - size * 0.2, y - size * 0.2, size * 0.4, size * 0.4);
+          p.fill(255, 255, 255, 80);
+          p.ellipse(x - size * 0.2, y - size * 0.2, size * 0.3, size * 0.3);
           
           // Connection lines to center (for some particles)
-          if (i % 4 === 0) {
-            p.stroke(particle.r, particle.g, particle.b, 50);
-          p.strokeWeight(1);
+          if (i % 5 === 0) {
+            p.stroke(particle.r, particle.g, particle.b, 40);
+            p.strokeWeight(0.5);
             p.line(0, 0, x, y);
           }
           
           p.pop();
         });
         
-        // Central energy core
-        const coreSize = 20 + Math.sin(time * 3) * 8;
-        const coreColors = getMoodPalette(moodSeed)[0];
+        // Static central energy core
+        const coreSize = 12 + Math.sin(seedHash * 0.005) * 4;
+        const coreColors = palette[0];
         p.push();
         p.translate(p.width / 2, p.height / 2);
         
         // Core glow
-        for (let i = 5; i > 0; i--) {
-          const alpha = 100 / i;
+        for (let i = 3; i > 0; i--) {
+          const alpha = 60 / i;
           p.fill(coreColors[0], coreColors[1], coreColors[2], alpha);
           p.noStroke();
-          p.ellipse(0, 0, coreSize + i * 4, coreSize + i * 4);
+          p.ellipse(0, 0, coreSize + i * 2, coreSize + i * 2);
         }
         
         // Core
-        p.fill(255, 255, 255, 200);
-        p.ellipse(0, 0, coreSize * 0.6, coreSize * 0.6);
+        p.fill(255, 255, 255, 150);
+        p.ellipse(0, 0, coreSize * 0.5, coreSize * 0.5);
         p.pop();
       };
 
-        p.draw = () => {
-          drawAura();
-        };
+        // No draw loop needed for static aura
+        p.noLoop();
       };
 
       if (p5ContainerRef.current) {
-        p5Instance = new p5(sketch, p5ContainerRef.current);
+        p5InstanceRef.current = new p5(sketch, p5ContainerRef.current);
       }
     };
 
     // Initialize p5 asynchronously
-    initializeP5().catch(console.error);
+    initializeP5().catch((error) => {
+      console.error('P5 initialization error:', error);
+      isGeneratingRef.current = false;
+    });
 
     return () => {
-      if (p5Instance) {
-        p5Instance.remove();
+      isGeneratingRef.current = false;
+      if (p5InstanceRef.current) {
+        p5InstanceRef.current.remove();
+        p5InstanceRef.current = null;
       }
     };
-  }, [moodSeed, transactionCount, onImageGenerated]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moodSeed, transactionCount]); // onImageGenerated handled via ref to prevent re-runs
 
   return (
     <div className="aura-generator-container">
@@ -240,20 +267,6 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
         ref={p5ContainerRef}
         className="aura-canvas-container"
       />
-      <div className="aura-metadata">
-        <div className="aura-metadata-item">
-          <span className="aura-metadata-label">Mood</span>
-          <span className="aura-metadata-value">"{moodSeed}"</span>
-        </div>
-        <div className="aura-metadata-item">
-          <span className="aura-metadata-label">Particles</span>
-          <span className="aura-metadata-value">{Math.max(transactionCount, 5) + 10}</span>
-        </div>
-        <div className="aura-metadata-item">
-          <span className="aura-metadata-label">Transactions</span>
-          <span className="aura-metadata-value">{transactionCount}</span>
-        </div>
-      </div>
     </div>
   );
 };
