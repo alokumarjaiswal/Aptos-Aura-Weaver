@@ -1556,27 +1556,31 @@ textarea,
   margin-bottom: 1rem;
   font-weight: 300;
   letter-spacing: -0.5px;
+  font-family: 'Bitcount Single Ink', sans-serif;
 }
 
 .mood-input {
   width: 100%;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  background: transparent;
   border: none;
-  border-radius: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
-  font-size: 1.125rem;
+  font-size: 1rem;
   text-align: center;
   outline: none;
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  font-weight: 300;
 }
 
 .mood-input:focus {
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
-  transform: scale(1.02);
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.mood-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 300;
 }
 
 .mood-input::placeholder {
@@ -1589,26 +1593,94 @@ textarea,
   justify-content: center;
 }
 
-.fetch-btn {
+.data-fetch-section {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: none;
-  padding: 1rem 1.5rem;
-  border-radius: 25px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  gap: 1rem;
 }
 
-.fetch-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+.sync-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.25rem;
+  border-radius: 12px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sync-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sync-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  outline: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #007AFF;
+  box-shadow: 0 0 6px rgba(0, 122, 255, 0.5);
+}
+
+.sync-dot.syncing {
+  animation: syncPulse 1s ease-in-out infinite;
+}
+
+.sync-icon {
+  color: #007AFF;
+  transition: color 0.3s ease;
+}
+
+.sync-btn:hover .sync-icon {
+  color: #0056CC;
+}
+
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tx-count {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  font-family: 'Bitcount Single Ink', sans-serif;
+  font-weight: 1100;
+}
+
+@keyframes syncPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
 }
 
 .fetch-btn:disabled {
@@ -1619,12 +1691,6 @@ textarea,
 
 .fetch-text {
   font-weight: 500;
-}
-
-.tx-count {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  opacity: 0.7;
 }
 
 .generate-section {

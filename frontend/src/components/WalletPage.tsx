@@ -127,7 +127,7 @@ const WalletPage: React.FC = () => {
                     type="text"
                     value={state.moodSeed}
                     onChange={(e) => setMoodSeed(e.target.value)}
-                    placeholder="Describe your current mood..."
+                    placeholder=""
                     className="mood-input"
                   />
                 </div>
@@ -136,17 +136,16 @@ const WalletPage: React.FC = () => {
                   <button
                     onClick={fetchUserData}
                     disabled={localLoading}
-                    className="fetch-btn"
+                    className="sync-btn"
+                    title="Sync"
                   >
-                    <svg className={localLoading ? 'rotating' : ''} width="20" height="20" viewBox="0 0 24 24" fill="none">
-                      <path d="M4 4V8H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M20 20V16H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M4 20L9 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M20 4L15 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg className={`sync-icon ${localLoading ? 'rotating' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="23,4 23,10 17,10"></polyline>
+                      <polyline points="1,20 1,14 7,14"></polyline>
+                      <path d="M20.49,9A9,9,0,0,0,5.64,5.64L1,10m22,4l-4.64,4.36A9,9,0,0,1,3.51,15"></path>
                     </svg>
-                    <span className="fetch-text">Sync Data</span>
-                    <span className="tx-count">Tx: {state.transactionCount}</span>
                   </button>
+                  <span className="tx-count">Tx: {state.transactionCount}</span>
                 </div>
               </div>
               
@@ -154,7 +153,7 @@ const WalletPage: React.FC = () => {
                 <button
                   onClick={handleContinue}
                   disabled={!state.moodSeed.trim() || state.transactionCount < 0}
-                  className="generate-btn"
+                  className="btn btn-primary btn-connect-wallet"
                 >
                   <span className="generate-text">Generate My Aura</span>
                   <div className="generate-glow"></div>
