@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://alokumarjaiswal.github.io/Aptos-Aura-Weaver",
+  "homepage": "./",
   "dependencies": {
     "@aptos-labs/ts-sdk": "^1.39.0",
     "@aptos-labs/wallet-adapter-ant-design": "^5.1.6",
@@ -29,7 +29,8 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
-    "predeploy": "npm run build",
+    "build:deploy": "REACT_APP_PUBLIC_URL=https://alokumarjaiswal.github.io/Aptos-Aura-Weaver npm run build",
+    "predeploy": "npm run build:deploy",
     "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
