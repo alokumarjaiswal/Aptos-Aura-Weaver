@@ -1,26 +1,26 @@
 {
   "files": {
-    "main.css": "/Aptos-Aura-Weaver/static/css/main.afd5343b.css",
-    "main.js": "/Aptos-Aura-Weaver/static/js/main.3a146999.js",
+    "main.css": "/Aptos-Aura-Weaver/static/css/main.f6c82971.css",
+    "main.js": "/Aptos-Aura-Weaver/static/js/main.c83efcd0.js",
     "static/js/990.7864d011.chunk.js": "/Aptos-Aura-Weaver/static/js/990.7864d011.chunk.js",
     "static/js/786.1db47b8c.chunk.js": "/Aptos-Aura-Weaver/static/js/786.1db47b8c.chunk.js",
-    "aptos-sdk.js": "/Aptos-Aura-Weaver/static/js/aptos-sdk.00db41ae.js",
+    "aptos-sdk.js": "/Aptos-Aura-Weaver/static/js/aptos-sdk.dfd056ba.js",
     "p5-graphics.js": "/Aptos-Aura-Weaver/static/js/p5-graphics.9bfb73ef.chunk.js",
-    "vendors.js": "/Aptos-Aura-Weaver/static/js/vendors.414a1081.js",
+    "vendors.js": "/Aptos-Aura-Weaver/static/js/vendors.db99ede9.js",
     "static/media/pxArt.png": "/Aptos-Aura-Weaver/static/media/pxArt.a19411e7d4d8b47d58af.png",
     "index.html": "/Aptos-Aura-Weaver/index.html",
-    "main.afd5343b.css.map": "/Aptos-Aura-Weaver/static/css/main.afd5343b.css.map",
-    "main.3a146999.js.map": "/Aptos-Aura-Weaver/static/js/main.3a146999.js.map",
+    "main.f6c82971.css.map": "/Aptos-Aura-Weaver/static/css/main.f6c82971.css.map",
+    "main.c83efcd0.js.map": "/Aptos-Aura-Weaver/static/js/main.c83efcd0.js.map",
     "990.7864d011.chunk.js.map": "/Aptos-Aura-Weaver/static/js/990.7864d011.chunk.js.map",
     "786.1db47b8c.chunk.js.map": "/Aptos-Aura-Weaver/static/js/786.1db47b8c.chunk.js.map",
-    "aptos-sdk.00db41ae.js.map": "/Aptos-Aura-Weaver/static/js/aptos-sdk.00db41ae.js.map",
+    "aptos-sdk.dfd056ba.js.map": "/Aptos-Aura-Weaver/static/js/aptos-sdk.dfd056ba.js.map",
     "p5-graphics.9bfb73ef.chunk.js.map": "/Aptos-Aura-Weaver/static/js/p5-graphics.9bfb73ef.chunk.js.map",
-    "vendors.414a1081.js.map": "/Aptos-Aura-Weaver/static/js/vendors.414a1081.js.map"
+    "vendors.db99ede9.js.map": "/Aptos-Aura-Weaver/static/js/vendors.db99ede9.js.map"
   },
   "entrypoints": [
-    "static/js/aptos-sdk.00db41ae.js",
-    "static/js/vendors.414a1081.js",
-    "static/css/main.afd5343b.css",
-    "static/js/main.3a146999.js"
+    "static/js/aptos-sdk.dfd056ba.js",
+    "static/js/vendors.db99ede9.js",
+    "static/css/main.f6c82971.css",
+    "static/js/main.c83efcd0.js"
   ]
 }
