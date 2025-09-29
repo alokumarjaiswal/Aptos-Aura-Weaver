@@ -27,14 +27,14 @@ const AuraPage: React.FC = () => {
   };
 
   const mintNFT = async () => {
-    // Load validation utilities and IPFS service dynamically
-    const [validationUtils, ipfsService] = await Promise.all([
+    // Load validation utilities and API service dynamically
+    const [validationUtils, apiService] = await Promise.all([
       import('../utils/validation'),
       import('../services/ipfsService')
     ]);
 
     const { validateWalletConnection, validateMoodSeed, validateTransactionCount, validateImageData } = validationUtils;
-    const { getIPFSConfig, uploadToIPFS, createNFTMetadata } = ipfsService;
+    const { apiService: api, createNFTMetadata, isStorageAvailable } = apiService;
 
     // Validation checks
     const walletValidation = validateWalletConnection(account?.address?.toString());
@@ -61,13 +61,12 @@ const AuraPage: React.FC = () => {
       return;
     }
 
-    // Check if IPFS is configured
-    const ipfsConfig = getIPFSConfig();
-    const hasIPFSConfig = ipfsConfig.apiKey && ipfsConfig.secretKey;
+    // Check if storage service is available
+    const storageAvailable = await isStorageAvailable();
 
-    if (!hasIPFSConfig) {
+    if (!storageAvailable) {
       // Show warning but continue with placeholder URI
-      showError('IPFS not configured. Using demo mode for NFT minting.', 'warning');
+      showError('Storage service not available. Using demo mode for NFT minting.', 'warning');
     }
 
     setLoading(true);
@@ -78,24 +77,17 @@ const AuraPage: React.FC = () => {
 
       let uri: string;
 
-      if (hasIPFSConfig) {
-        // Convert imageData to blob for IPFS upload
+      if (storageAvailable) {
+        // Convert imageData to blob for upload
         const imageBlob = await fetch(state.imageData).then(r => r.blob());
 
-        // Upload image to IPFS
-        console.log('Uploading your aura image to IPFS...');
+        console.log('Uploading your aura NFT to IPFS...');
 
-        const imageUpload = await uploadToIPFS(imageBlob, ipfsConfig);
-
-        if (!imageUpload.success) {
-          throw new Error(`IPFS upload failed: ${imageUpload.error}`);
-        }
-
-        // Create and upload metadata
+        // Create metadata first (without image URL)
         const metadata = createNFTMetadata(
           tokenName,
           description,
-          imageUpload.url!,
+          '', // Image URL will be set by backend
           [
             { trait_type: 'Mood', value: state.moodSeed },
             { trait_type: 'Transaction Count', value: state.transactionCount.toString() },
@@ -104,24 +96,25 @@ const AuraPage: React.FC = () => {
           ]
         );
 
-        const metadataUpload = await uploadToIPFS(
-          new Blob([JSON.stringify(metadata, null, 2)], { type: 'application/json' }),
-          ipfsConfig
-        );
+        // Upload complete NFT (image + metadata) in one call
+        const uploadResult = await api.uploadNFT({
+          imageFile: imageBlob,
+          metadata
+        });
 
-        if (!metadataUpload.success) {
-          throw new Error(`Metadata upload failed: ${metadataUpload.error}`);
+        if (!uploadResult.success) {
+          throw new Error(`NFT upload failed: ${uploadResult.error}`);
         }
 
-        uri = metadataUpload.url!;
+        uri = uploadResult.url!;
 
         console.log('🎨 Minting NFT with parameters:', {
           tokenName,
           moodSeed: state.moodSeed,
           transactionCount: state.transactionCount,
           uri,
-          imageHash: imageUpload.hash,
-          metadataHash: metadataUpload.hash
+          ...(uploadResult.imageHash && { imageHash: uploadResult.imageHash }),
+          ...(uploadResult.hash && { metadataHash: uploadResult.hash })
         });
       } else {
         // Use simple placeholder URI for demo (short enough for blockchain)
@@ -173,10 +166,10 @@ const AuraPage: React.FC = () => {
       console.log('✅ Transaction confirmed:', txResult);
 
       // Add success log
-      const demoMode = !hasIPFSConfig;
+      const demoMode = !storageAvailable;
       const successMessage = demoMode
-        ? `Your aura NFT "${tokenName}" has been minted in demo mode! (IPFS not configured)`
-        : `Your aura NFT "${tokenName}" has been minted!`;
+        ? `Your aura NFT "${tokenName}" has been minted in demo mode! (Storage service not available)`
+        : `Your aura NFT "${tokenName}" has been minted with IPFS storage!`;
       console.log(`NFT Minted Successfully: ${successMessage}`);
 
       // Log detailed information for development
@@ -243,7 +236,6 @@ const AuraPage: React.FC = () => {
               <Suspense fallback={
                 <div className="aura-loading-fallback">
                   <div className="loading-spinner"></div>
-                  <p>Generating your aura visualization...</p>
                 </div>
               }>
                 <AuraGenerator

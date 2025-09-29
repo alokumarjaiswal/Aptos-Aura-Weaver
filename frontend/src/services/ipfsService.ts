@@ -1,131 +1,168 @@
 /**
- * IPFS Service for uploading and managing NFT metadata and images
+ * API Service for NFT storage via backend
  */
 
-export interface IPFSUploadResult {
+export interface UploadResult {
   success: boolean;
   hash?: string;
   url?: string;
   error?: string;
+  // Additional properties for NFT upload
+  imageHash?: string;
+  imageUrl?: string;
+  metadata?: NFTMetadata;
 }
 
-export interface IPFSConfig {
-  gateway: string;
-  apiKey?: string;
-  secretKey?: string;
+export interface NFTUploadData {
+  imageFile: File | Blob;
+  metadata: NFTMetadata;
 }
 
-/**
- * Upload a file to IPFS using Pinata
- */
-export const uploadToIPFS = async (
-  file: File | Blob,
-  config: IPFSConfig
-): Promise<IPFSUploadResult> => {
-  try {
-    if (!config.apiKey || !config.secretKey) {
-      throw new Error('IPFS API keys not configured. Please set REACT_APP_PINATA_API_KEY and REACT_APP_PINATA_SECRET_KEY');
-    }
+export interface NFTMetadata {
+  name: string;
+  description: string;
+  image?: string;
+  attributes: Array<{ trait_type: string; value: string }>;
+  external_url: string;
+  created_at: string;
+}
 
-    const formData = new FormData();
-    formData.append('file', file);
+class APIService {
+  private baseUrl: string;
 
-    const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-      method: 'POST',
-      headers: {
-        'pinata_api_key': config.apiKey,
-        'pinata_secret_api_key': config.secretKey,
-      },
-      body: formData
-    });
-
-    if (!response.ok) {
-      throw new Error(`IPFS upload failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    return {
-      success: true,
-      hash: result.IpfsHash,
-      url: `${config.gateway}${result.IpfsHash}`
-    };
-  } catch (error) {
-    console.error('IPFS upload error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown IPFS upload error'
-    };
+  constructor() {
+    this.baseUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
   }
-};
 
-/**
- * Upload JSON metadata to IPFS
- */
-export const uploadMetadataToIPFS = async (
-  metadata: Record<string, any>,
-  config: IPFSConfig
-): Promise<IPFSUploadResult> => {
-  try {
-    if (!config.apiKey || !config.secretKey) {
-      throw new Error('IPFS API keys not configured. Please set REACT_APP_PINATA_API_KEY and REACT_APP_PINATA_SECRET_KEY');
+  /**
+   * Check if backend service is available
+   */
+  async isAvailable(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+      return response.ok;
+    } catch (error) {
+      console.warn('Backend service not available:', error);
+      return false;
     }
-
-    const response = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'pinata_api_key': config.apiKey,
-        'pinata_secret_api_key': config.secretKey,
-      },
-      body: JSON.stringify({
-        pinataContent: metadata,
-        pinataMetadata: {
-          name: 'aura-nft-metadata.json'
-        }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`IPFS metadata upload failed: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    return {
-      success: true,
-      hash: result.IpfsHash,
-      url: `${config.gateway}${result.IpfsHash}`
-    };
-  } catch (error) {
-    console.error('IPFS metadata upload error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown IPFS metadata upload error'
-    };
   }
-};
+
+  /**
+   * Upload complete NFT data (image + metadata) in one call
+   */
+  async uploadNFT(data: NFTUploadData): Promise<UploadResult> {
+    try {
+      const formData = new FormData();
+      formData.append('image', data.imageFile);
+      formData.append('metadata', JSON.stringify(data.metadata));
+
+      const response = await fetch(`${this.baseUrl}/api/upload-nft`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('NFT upload error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown upload error'
+      };
+    }
+  }
+
+  /**
+   * Upload just an image file
+   */
+  async uploadImage(file: File | Blob): Promise<UploadResult> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${this.baseUrl}/api/upload-file`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Image upload failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Image upload failed');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Image upload error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown image upload error'
+      };
+    }
+  }
+
+  /**
+   * Upload metadata JSON
+   */
+  async uploadMetadata(metadata: NFTMetadata): Promise<UploadResult> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/upload-metadata`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ metadata })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Metadata upload failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Metadata upload failed');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Metadata upload error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown metadata upload error'
+      };
+    }
+  }
+}
+
+// Export singleton instance
+export const apiService = new APIService();
 
 /**
- * Get IPFS configuration from environment variables
- */
-export const getIPFSConfig = (): IPFSConfig => {
-  return {
-    gateway: process.env.REACT_APP_IPFS_GATEWAY || 'https://gateway.pinata.cloud/ipfs/',
-    apiKey: process.env.REACT_APP_PINATA_API_KEY,
-    secretKey: process.env.REACT_APP_PINATA_SECRET_KEY
-  };
-};
-
-/**
- * Create NFT metadata JSON
+ * Helper function to create NFT metadata
  */
 export const createNFTMetadata = (
   name: string,
   description: string,
   imageUrl: string,
-  attributes: Record<string, any>[]
-): Record<string, any> => {
+  attributes: Array<{ trait_type: string; value: string }>
+): NFTMetadata => {
   return {
     name,
     description,
@@ -135,3 +172,20 @@ export const createNFTMetadata = (
     created_at: new Date().toISOString()
   };
 };
+
+/**
+ * Check if IPFS storage is configured (backend available)
+ */
+export const isStorageAvailable = async (): Promise<boolean> => {
+  return await apiService.isAvailable();
+};
+
+// Legacy exports for compatibility (deprecated)
+/** @deprecated Use apiService.uploadImage instead */
+export const uploadToIPFS = apiService.uploadImage.bind(apiService);
+
+/** @deprecated Use apiService.uploadMetadata instead */
+export const uploadMetadataToIPFS = apiService.uploadMetadata.bind(apiService);
+
+/** @deprecated Use isStorageAvailable instead */
+export const getIPFSConfig = () => ({ configured: true });
