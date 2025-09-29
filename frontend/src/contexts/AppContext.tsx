@@ -32,11 +32,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [state, setState] = useState<AppState>(initialState);
 
   const setMoodSeed = (moodSeed: string) => {
-    setState(prev => ({ ...prev, moodSeed }));
+    setState(prev => ({ ...prev, moodSeed, lastTransactionHash: undefined }));
   };
 
   const setTransactionCount = (count: number) => {
-    setState(prev => ({ ...prev, transactionCount: count }));
+    setState(prev => ({ ...prev, transactionCount: count, lastTransactionHash: undefined }));
   };
 
   const setImageData = (imageData: string) => {

@@ -15,7 +15,9 @@ const AuraPage: React.FC = () => {
   // Memoize the image callback to prevent unnecessary re-renders
   const handleImageGenerated = useCallback((imageData: string) => {
     setImageData(imageData);
-  }, [setImageData]);
+    // Clear any previous transaction hash when a new aura is generated
+    setTransactionHash('');
+  }, [setImageData, setTransactionHash]);
 
   const mapTransactionError = (error: any): { message: string; type: 'error' | 'warning' | 'info' } => {
     const errorMsg = error?.message || error?.toString() || '';

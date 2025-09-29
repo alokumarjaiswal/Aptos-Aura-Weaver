@@ -181,8 +181,13 @@ const WalletPage: React.FC = () => {
                     type="text"
                     value={state.moodSeed}
                     onChange={(e) => setMoodSeed(e.target.value)}
+                    onFocus={(e) => e.target.select()}
                     placeholder=""
                     className="mood-input"
+                    spellCheck={false}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
                   />
                 </div>
                 
