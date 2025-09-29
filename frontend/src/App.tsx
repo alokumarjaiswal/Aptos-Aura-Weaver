@@ -8,6 +8,14 @@ import WalletPage from './components/WalletPage';
 import AuraPage from './components/AuraPage';
 import './App.css';
 
+// Get the base name from package.json homepage for GitHub Pages
+const getBasename = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return '/Aptos-Aura-Weaver';
+  }
+  return '';
+};
+
 // Component to handle navigation based on wallet state
 const AppRoutes: React.FC = () => {
   const { connected } = useWallet();
@@ -16,12 +24,12 @@ const AppRoutes: React.FC = () => {
   useEffect(() => {
     if (connected) {
       // If wallet is connected and we're on landing page, navigate to wallet page
-      if (window.location.pathname === '/') {
+      if (window.location.pathname === getBasename() + '/' || window.location.pathname === getBasename()) {
         navigate('/wallet');
       }
     } else {
       // If wallet is disconnected and we're not on landing page, navigate to landing
-      if (window.location.pathname !== '/') {
+      if (window.location.pathname !== getBasename() + '/' && window.location.pathname !== getBasename()) {
         navigate('/');
       }
     }
@@ -48,7 +56,7 @@ function App() {
   return (
     <WalletProvider>
       <AppProvider>
-        <Router>
+        <Router basename={getBasename()}>
           <AppRoutes />
         </Router>
       </AppProvider>
