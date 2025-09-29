@@ -12,8 +12,35 @@ const WalletPage: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [autoFetched, setAutoFetched] = useState(false);
 
+  const checkNetworkCompatibility = async (): Promise<boolean> => {
+    try {
+      const expectedNetwork = (process.env.REACT_APP_APTOS_NETWORK as string) || 'devnet';
+      
+      // Check if wallet network matches expected network
+      if ((window as any).aptos?.network) {
+        const walletNetwork = await (window as any).aptos.network();
+        const actualNetwork = walletNetwork?.name || walletNetwork;
+        
+        if (actualNetwork && !actualNetwork.toLowerCase().includes(expectedNetwork.toLowerCase())) {
+          alert(`Network Warning: Please switch your wallet to ${expectedNetwork.toUpperCase()} network. Currently connected to: ${actualNetwork}`);
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      console.warn('Network compatibility check failed:', error);
+      return true; // Continue if check fails
+    }
+  };
+
   const fetchUserData = useCallback(async () => {
     if (!account?.address) return;
+
+    // Check network compatibility before fetching data
+    const networkOk = await checkNetworkCompatibility();
+    if (!networkOk) {
+      return; // Stop if network mismatch
+    }
 
     setLocalLoading(true);
     setLoading(true);
@@ -48,14 +75,24 @@ const WalletPage: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error fetching user data:', error);
+      
+      const errorMsg = error?.message || error?.toString() || '';
 
-      if (error?.message?.includes('not found') || error?.message?.includes('Invalid response')) {
+      if (errorMsg.includes('not found') || errorMsg.includes('Invalid response')) {
         setTransactionCount(0);
-        alert('Account not found on Aptos network. Using default values for demo.');
-      } else if (error?.message?.includes('network') || !navigator.onLine) {
-        alert('Network error. Please check your connection and try again.');
+        alert('Account not found on Aptos network. This is normal for new accounts. Using transaction count: 0');
+      } else if (errorMsg.includes('network') || errorMsg.includes('fetch') || !navigator.onLine) {
+        alert('Network error. Please check your internet connection and try again.');
+      } else if (errorMsg.includes('timeout') || errorMsg.includes('TIMEOUT')) {
+        alert('Request timed out. The network may be slow. Please try again.');
+      } else if (errorMsg.includes('rate limit') || errorMsg.includes('429')) {
+        alert('Too many requests. Please wait a moment and try again.');
+      } else if (errorMsg.includes('CORS') || errorMsg.includes('cors')) {
+        alert('Connection blocked by browser security. Please try refreshing the page.');
+      } else if (errorMsg.includes('Unauthorized') || errorMsg.includes('401')) {
+        alert('Authorization error. Please reconnect your wallet.');
       } else {
-        alert('Unable to fetch account data. Using demo values.');
+        alert(`Unable to fetch account data: ${errorMsg}. Using demo values for now.`);
         setTransactionCount(Math.floor(Math.random() * 50) + 5);
       }
     } finally {
