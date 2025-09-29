@@ -5,6 +5,7 @@ export interface AppState {
   transactionCount: number;
   imageData: string;
   loading: boolean;
+  lastTransactionHash?: string;
 }
 
 export interface AppContextType {
@@ -13,6 +14,7 @@ export interface AppContextType {
   setTransactionCount: (count: number) => void;
   setImageData: (imageData: string) => void;
   setLoading: (loading: boolean) => void;
+  setTransactionHash: (hash: string) => void;
   resetState: () => void;
 }
 
@@ -23,6 +25,7 @@ const initialState: AppState = {
   transactionCount: 0,
   imageData: '',
   loading: false,
+  lastTransactionHash: undefined,
 };
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -44,6 +47,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setState(prev => ({ ...prev, loading }));
   };
 
+  const setTransactionHash = (hash: string) => {
+    setState(prev => ({ ...prev, lastTransactionHash: hash }));
+  };
+
   const resetState = () => {
     setState(initialState);
   };
@@ -54,6 +61,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setTransactionCount,
     setImageData,
     setLoading,
+    setTransactionHash,
     resetState,
   };
 

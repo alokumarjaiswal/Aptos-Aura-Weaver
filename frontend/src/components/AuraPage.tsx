@@ -2,13 +2,14 @@ import React, { Suspense, lazy, useCallback } from 'react';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import Header from '../components/Header';
 import { useAppContext } from '../contexts/AppContext';
+import { openTransactionInExplorer, getNetworkDisplayName } from '../utils/aptosExplorer';
 
 // Lazy load the heavy AuraGenerator component
 const AuraGenerator = lazy(() => import('../AuraGenerator'));
 
 const AuraPage: React.FC = () => {
   const { account, signAndSubmitTransaction } = useWallet();
-  const { state, setImageData, setLoading } = useAppContext();
+  const { state, setImageData, setLoading, setTransactionHash } = useAppContext();
 
   // Memoize the image callback to prevent unnecessary re-renders
   const handleImageGenerated = useCallback((imageData: string) => {
@@ -70,6 +71,9 @@ const AuraPage: React.FC = () => {
     }
 
     setLoading(true);
+    
+    // Clear any previous transaction hash
+    setTransactionHash('');
 
     try {
       const tokenName = `Aura-${state.moodSeed.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}`;
@@ -165,6 +169,9 @@ const AuraPage: React.FC = () => {
 
       console.log('✅ Transaction confirmed:', txResult);
 
+      // Store the transaction hash in the app state
+      setTransactionHash(response.hash);
+
       // Add success log
       const demoMode = !storageAvailable;
       const successMessage = demoMode
@@ -180,6 +187,7 @@ const AuraPage: React.FC = () => {
         transactionCount: state.transactionCount,
         walletAddress: account?.address?.toString(),
         imageDataSize: state.imageData.length,
+        transactionHash: response.hash,
         timestamp: new Date().toISOString()
       });
 
@@ -268,6 +276,17 @@ const AuraPage: React.FC = () => {
                     <span className="generate-text">Download</span>
                     <div className="generate-glow"></div>
                   </button>
+
+                  {state.lastTransactionHash && state.lastTransactionHash.trim() !== '' && (
+                    <button
+                      onClick={() => openTransactionInExplorer(state.lastTransactionHash!)}
+                      className="btn btn-secondary btn-connect-wallet btn-explorer"
+                      title={`View transaction on Aptos ${getNetworkDisplayName()}`}
+                    >
+                      <span className="generate-text">View on Aptos {getNetworkDisplayName()}</span>
+                      <div className="generate-glow"></div>
+                    </button>
+                  )}
                 </div>
 
               </div>
@@ -277,7 +296,7 @@ const AuraPage: React.FC = () => {
         
         <footer className="mvp-footer">
           <p className="mvp-note mvp-note-compact">
-           Live on Aptos Devnet! Your NFTs will be minted on-chain.
+           Live on Aptos Devnet! Switch to Devnet in your wallet and faucet APT.
           </p>
         </footer>
       </div>
