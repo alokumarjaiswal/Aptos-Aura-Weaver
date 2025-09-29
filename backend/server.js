@@ -21,9 +21,40 @@ app.use(helmet({
 // Request logging
 app.use(requestLogger);
 
-// CORS middleware
+// CORS middleware with flexible origin handling
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // List of allowed origins and patterns
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'http://localhost:3002',
+      'https://alokumarjaiswal.github.io',
+      'https://alokumarjaiswal.github.io/Aptos-Aura-Weaver'
+    ].filter(Boolean);
+    
+    // Allow any localhost port for development
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1');
+    
+    // Check for exact match or GitHub Pages variations
+    const isGitHubPages = origin === 'https://alokumarjaiswal.github.io' || 
+                          origin.startsWith('https://alokumarjaiswal.github.io/');
+    
+    // Check for exact origin match
+    const isAllowedOrigin = allowedOrigins.includes(origin);
+    
+    if (isLocalhost || isGitHubPages || isAllowedOrigin) {
+      logger.debug('CORS allowed origin', { origin });
+      callback(null, true);
+    } else {
+      logger.warn('CORS blocked origin', { origin, allowedOrigins });
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 

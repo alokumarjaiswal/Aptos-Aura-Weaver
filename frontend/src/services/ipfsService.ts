@@ -1,6 +1,7 @@
 /**
  * API Service for NFT storage via backend
  */
+import { config } from '../config';
 
 export interface UploadResult {
   success: boolean;
@@ -31,11 +32,11 @@ class APIService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+    this.baseUrl = config.getBackendUrl();
   }
 
   /**
-   * Check if backend service is available
+   * Enhanced availability check with automatic URL discovery
    */
   async isAvailable(): Promise<boolean> {
     try {
@@ -43,12 +44,49 @@ class APIService {
         method: 'GET',
         signal: AbortSignal.timeout(5000) // 5 second timeout
       });
-      return response.ok;
+      
+      if (response.ok) {
+        console.log('✅ Backend available at:', this.baseUrl);
+        return true;
+      }
     } catch (error) {
-      console.warn('Backend service not available:', error);
-      return false;
+      console.warn('❌ Backend not available at:', this.baseUrl);
     }
+
+    // If primary URL fails, try fallback discovery
+    return await this.tryFallbackUrls();
   }
+
+  /**
+   * Try alternative URLs if primary fails
+   */
+  private async tryFallbackUrls(): Promise<boolean> {
+    const fallbackUrls = config.getAllBackendUrls();
+
+    for (const url of fallbackUrls) {
+      if (url === this.baseUrl) continue; // Skip already tried URL
+      
+      try {
+        const response = await fetch(`${url}/health`, {
+          method: 'GET',
+          signal: AbortSignal.timeout(3000)
+        });
+        
+        if (response.ok) {
+          console.log('🔄 Switched to fallback backend:', url);
+          this.baseUrl = url; // Update to working URL
+          return true;
+        }
+      } catch (error) {
+        console.warn('❌ Fallback URL failed:', url);
+      }
+    }
+    
+    console.warn('❌ No backend services available');
+    return false;
+  }
+
+
 
   /**
    * Upload complete NFT data (image + metadata) in one call
