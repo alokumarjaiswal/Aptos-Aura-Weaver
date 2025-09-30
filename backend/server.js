@@ -33,7 +33,6 @@ app.use(cors({
       'http://localhost:3000',
       'http://localhost:3001', 
       'http://localhost:3002',
-      'https://alokumarjaiswal.github.io',
       'https://alokumarjaiswal.github.io/Aptos-Aura-Weaver'
     ].filter(Boolean);
     
@@ -64,8 +63,23 @@ app.use(express.json({ limit: '10mb' }));
 // Apply general rate limiting to all routes
 app.use(generalLimiter);
 
-// Configure multer for file uploads
-const upload = multer({ storage: multer.memoryStorage() });
+// Configure multer for file uploads with security
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 1
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow images
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PNG, JPEG, WebP and GIF are allowed.'), false);
+    }
+  }
+});
 
 // Health check endpoint
 app.get('/health', healthLimiter, (req, res) => {

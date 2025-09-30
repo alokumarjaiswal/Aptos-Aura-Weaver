@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { WalletProvider } from './WalletProvider';
 import { AppProvider } from './contexts/AppContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import LandingPage from './components/LandingPage';
 import WalletPage from './components/WalletPage';
 import AuraPage from './components/AuraPage';
@@ -54,13 +55,15 @@ const AppRoutes: React.FC = () => {
 
 function App() {
   return (
-    <WalletProvider>
-      <AppProvider>
-        <Router basename={getBasename()}>
-          <AppRoutes />
-        </Router>
-      </AppProvider>
-    </WalletProvider>
+    <ErrorBoundary>
+      <WalletProvider>
+        <AppProvider>
+          <Router basename={getBasename()}>
+            <AppRoutes />
+          </Router>
+        </AppProvider>
+      </WalletProvider>
+    </ErrorBoundary>
   );
 }
 

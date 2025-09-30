@@ -113,13 +113,34 @@ const AuraPage: React.FC = () => {
 
   const showError = (message: string, type: 'error' | 'warning' | 'info' = 'error') => {
     console.error(`${type.toUpperCase()}: ${message}`);
-    if (type === 'error') {
-      alert(`Error: ${message}`);
-    } else if (type === 'warning') {
-      alert(`Warning: ${message}`);
-    } else {
-      alert(`Info: ${message}`);
-    }
+    
+    // Create and show notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: ${type === 'error' ? '#ff4444' : type === 'warning' ? '#ffaa00' : '#0099ff'};
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10000;
+      max-width: 400px;
+      animation: slideIn 0.3s ease-out;
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => notification.remove(), 300);
+      }
+    }, 5000);
   };
 
   const showSuccess = (title: string, message: string) => {
@@ -285,7 +306,7 @@ const AuraPage: React.FC = () => {
       const demoMode = !storageAvailable;
       const successMessage = demoMode
         ? `Your aura NFT "${tokenName}" has been minted in demo mode! (Storage service not available)`
-        : `Your aura NFT "${tokenName}" has been minted with IPFS storage!`;
+        : `Your aura NFT has been minted with IPFS storage! View it on Aptos ${getNetworkDisplayName()}.`;
       console.log(`NFT Minted Successfully: ${successMessage}`);
 
       // Log detailed information for development

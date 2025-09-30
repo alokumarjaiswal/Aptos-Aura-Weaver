@@ -7,23 +7,26 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ showBackButton = false, onBackClick }) => {
   return (
-    <header className="app-header">
+    <header className="app-header" role="banner">
       <div className="header-content">
         <div className="header-text">
-          <h1 className="app-title">APTOS AURA WEAVER</h1>
-          <p className="app-subtitle">Generate your personalized aura NFT based on your on-chain activity</p>
+          <h1 className="app-title" id="main-title">APTOS AURA WEAVER</h1>
+          <p className="app-subtitle" aria-describedby="main-title">
+            Generate your personalized aura NFT based on your on-chain activity
+          </p>
         </div>
-        <div className="header-actions">
+        <nav className="header-actions" role="navigation" aria-label="Header navigation">
           {showBackButton && (
             <button
               onClick={onBackClick}
               className="btn btn-secondary back-button"
-              title="Go back"
+              aria-label="Go back to previous page"
+              type="button"
             >
-              ← Back
+              <span aria-hidden="true">←</span> Back
             </button>
           )}
-        </div>
+        </nav>
       </div>
     </header>
   );
