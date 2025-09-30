@@ -12,6 +12,10 @@ const { generalLimiter, uploadLimiter, nftLimiter, healthLimiter } = require('./
 const app = express();
 const port = process.env.PORT || 3001;
 
+// Trust proxy - important for rate limiting and getting correct client IPs
+// When behind a proxy like Railway, Heroku, etc.
+app.set('trust proxy', true);
+
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
