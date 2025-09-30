@@ -123,7 +123,7 @@ const AuraPage: React.FC = () => {
   };
 
   const showSuccess = (title: string, message: string) => {
-    console.log(`SUCCESS - ${title}: ${message}`);
+    // Success handling - could be extended with toast notifications
   };
 
   const mintNFT = async () => {

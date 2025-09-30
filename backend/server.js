@@ -452,10 +452,6 @@ app.listen(port, () => {
     logLevel: logger.level
   });
   
-  // Test log to verify Winston is working
-  logger.warn('Server startup test - this should appear in logs');
-  logger.error('Error level test - this should appear in error.log');
-  
   console.log(`🚀 Aura Weaver Backend running on port ${port}`);
   console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
   console.log(`🔑 IPFS configured: ${process.env.PINATA_API_KEY ? 'Yes' : 'No'}`);

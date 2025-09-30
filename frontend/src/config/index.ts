@@ -11,20 +11,10 @@ export const config = {
     const productionUrl = process.env.REACT_APP_BACKEND_URL_PRODUCTION;
     const developmentUrl = process.env.REACT_APP_BACKEND_URL_DEVELOPMENT || 'http://localhost:3001';
     
-    console.log('🔍 Environment check:', {
-      NODE_ENV: process.env.NODE_ENV,
-      hostname: window.location.hostname,
-      productionUrl,
-      developmentUrl
-    });
-    
     // If we have a production URL and it's not a placeholder, try it first
     if (productionUrl && productionUrl !== 'https://your-railway-app.up.railway.app') {
-      console.log('🎯 Attempting to use production backend:', productionUrl);
       return productionUrl;
     }
-    
-    console.log('🔧 Using development backend:', developmentUrl);
     return developmentUrl;
   },
 

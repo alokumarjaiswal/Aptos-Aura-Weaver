@@ -109,8 +109,6 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
           });
         }
         
-        console.log(`Generated ${particles.length} particles and ${waveforms.length} waveforms`);
-        
         // Draw static aura once
         drawStaticAura();
         
@@ -121,7 +119,6 @@ const AuraGenerator: React.FC<AuraGeneratorProps> = ({
             if (canvas && canvas.canvas) {
               const imageData = canvas.canvas.toDataURL('image/png');
               onImageGeneratedRef.current(imageData);
-              console.log('Static aura captured successfully');
             }
             isGeneratingRef.current = false;
           }, 150);

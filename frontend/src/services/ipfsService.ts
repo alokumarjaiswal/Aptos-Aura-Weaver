@@ -46,11 +46,10 @@ class APIService {
       });
       
       if (response.ok) {
-        console.log('✅ Backend available at:', this.baseUrl);
         return true;
       }
     } catch (error) {
-      console.warn('❌ Backend not available at:', this.baseUrl);
+      // Backend not available, will try fallbacks
     }
 
     // If primary URL fails, try fallback discovery
@@ -73,16 +72,13 @@ class APIService {
         });
         
         if (response.ok) {
-          console.log('🔄 Switched to fallback backend:', url);
           this.baseUrl = url; // Update to working URL
           return true;
         }
       } catch (error) {
-        console.warn('❌ Fallback URL failed:', url);
+        // Fallback URL failed, try next
       }
     }
-    
-    console.warn('❌ No backend services available');
     return false;
   }
 

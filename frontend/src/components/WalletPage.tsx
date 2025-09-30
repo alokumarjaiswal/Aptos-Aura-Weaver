@@ -68,8 +68,6 @@ const WalletPage: React.FC = () => {
       const txCount = parseInt(accountData.sequence_number);
       setTransactionCount(txCount);
 
-      console.log(`Data fetched: Found ${txCount} transactions`);
-
       if (txCount === 0) {
         alert('Your account has no transactions yet. You can still create an aura!');
       }
@@ -104,7 +102,6 @@ const WalletPage: React.FC = () => {
   // Auto-fetch transaction data when wallet is connected
   useEffect(() => {
     if (account?.address && !autoFetched && state.transactionCount === 0 && !localLoading) {
-      console.log('Auto-fetching transaction data for connected wallet...');
       setAutoFetched(true);
       fetchUserData();
     }
