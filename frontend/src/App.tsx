@@ -4,9 +4,9 @@ import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { WalletProvider } from './WalletProvider';
 import { AppProvider } from './contexts/AppContext';
 import ErrorBoundary from './components/ErrorBoundary';
-import LandingPage from './components/LandingPage';
-import WalletPage from './components/WalletPage';
-import AuraPage from './components/AuraPage';
+import { LazyWalletPage, LazyAuraPage } from './components/LazyLoader';
+import LandingPage from './components/LandingPage'; // Keep landing page eager for fast initial load
+import { preloadCriticalResources } from './utils/preloader';
 import './App.css';
 
 // Get the base name from package.json homepage for GitHub Pages
@@ -41,11 +41,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<LandingPage />} />
       <Route
         path="/wallet"
-        element={connected ? <WalletPage /> : <Navigate to="/" replace />}
+        element={connected ? <LazyWalletPage /> : <Navigate to="/" replace />}
       />
       <Route
         path="/aura"
-        element={connected ? <AuraPage /> : <Navigate to="/" replace />}
+        element={connected ? <LazyAuraPage /> : <Navigate to="/" replace />}
       />
       {/* Catch all route - redirect to landing */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -54,6 +54,11 @@ const AppRoutes: React.FC = () => {
 };
 
 function App() {
+  // Initialize performance optimizations
+  useEffect(() => {
+    preloadCriticalResources();
+  }, []);
+
   return (
     <ErrorBoundary>
       <WalletProvider>

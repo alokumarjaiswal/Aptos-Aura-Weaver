@@ -3,6 +3,7 @@ import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import Header from '../components/Header';
 import pxArtImage from '../pxArt.png';
 import { isPetraWalletInstalled, redirectToPetraInstall } from '../utils/validation';
+import { prefetchOnHover } from '../utils/preloader';
 
 const LandingPage: React.FC = () => {
   const { connect } = useWallet();
@@ -54,6 +55,7 @@ const LandingPage: React.FC = () => {
             <div className="landing-content">
               <button
                 onClick={handleConnect}
+                onMouseEnter={() => prefetchOnHover('wallet')}
                 className="btn btn-primary btn-connect-wallet"
               >
                 <svg width="20" height="19" viewBox="0 0 35 33" fill="none" xmlns="http://www.w3.org/2000/svg" className="petra-svg">

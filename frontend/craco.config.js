@@ -17,40 +17,55 @@ module.exports = {
           ...webpackConfig.optimization,
           splitChunks: {
             chunks: 'all',
+            maxInitialRequests: 10,
+            maxAsyncRequests: 10,
             cacheGroups: {
-              // Separate vendor chunk for large libraries
+              // React and core libraries
+              react: {
+                test: /[\\/]node_modules[\\/](react|react-dom|react-router)[\\/]/,
+                name: 'react-vendor',
+                priority: 30,
+                reuseExistingChunk: true,
+              },
+              // Aptos SDK - load on demand
+              aptos: {
+                test: /[\\/]node_modules[\\/]@aptos-labs[\\/]/,
+                name: 'aptos-sdk',
+                priority: 25,
+                chunks: 'async', // Only load when needed
+                reuseExistingChunk: true,
+              },
+              // p5.js graphics - load on demand
+              p5: {
+                test: /[\\/]node_modules[\\/]p5[\\/]/,
+                name: 'p5-graphics',
+                priority: 20,
+                chunks: 'async', // Only load when generating aura
+                reuseExistingChunk: true,
+              },
+              // Other vendor libraries
               vendor: {
                 test: /[\\/]node_modules[\\/]/,
                 name: 'vendors',
                 priority: 10,
                 reuseExistingChunk: true,
               },
-              // Separate chunk for Aptos SDK (large library)
-              aptos: {
-                test: /[\\/]node_modules[\\/]@aptos-labs[\\/]/,
-                name: 'aptos-sdk',
-                priority: 20,
-                reuseExistingChunk: true,
-              },
-              // Separate chunk for p5.js (graphics library)
-              p5: {
-                test: /[\\/]node_modules[\\/]p5[\\/]/,
-                name: 'p5-graphics',
-                priority: 15,
-                reuseExistingChunk: true,
-              },
-              // Common chunk for frequently used modules
+              // Common app code
               common: {
                 name: 'common',
                 minChunks: 2,
                 priority: 5,
+                chunks: 'all',
                 reuseExistingChunk: true,
               },
             },
           },
-          // Enable tree shaking
+          // Enhanced tree shaking
           usedExports: true,
           sideEffects: false,
+          providedExports: true,
+          // Module concatenation for smaller bundles
+          concatenateModules: true,
         };
       }
 

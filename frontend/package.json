@@ -27,7 +27,9 @@
     "eject": "react-scripts eject",
     "build:deploy": "npm run build",
     "predeploy": "npm run build:deploy",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d build",
+    "analyze": "npm run build && npx serve -s build",
+    "bundle-analyzer": "npx webpack-bundle-analyzer build/static/js/*.js"
   },
   "eslintConfig": {
     "extends": [
