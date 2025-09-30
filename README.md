@@ -1,7 +1,7 @@
 # Aptos Aura Weaver 
 
 <div align="center">
-  <img src="https://github.com/alokumarjaiswal/Aptos-Aura-Weaver/README.png" alt="Aptos Aura Weaver Landing Page" width="800" />
+  <img src="https://github.com/alokumarjaiswal/Aptos-Aura-Weaver/blob/main/README.png" alt="Aptos Aura Weaver Landing Page" width="800" />
   <br />
   <em>Transform your blockchain journey into personalized generative art NFTs</em>
 </div>
