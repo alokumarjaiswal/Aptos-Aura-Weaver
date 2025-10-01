@@ -106,7 +106,7 @@ aptos move compile
 aptos move publish --named-addresses aura_weaver=<YOUR_ADDRESS>
 ```
 
-## 🎮 How to Use
+## How to Use
 
 ### **Step 1: Connect Wallet**
 - Install Petra wallet if not already installed
@@ -175,7 +175,7 @@ const response = await signAndSubmitTransaction({
 });
 ```
 
-## 📊 Project Structure
+## Project Structure
 
 ```
 Aptos-Aura-Weaver/
@@ -207,7 +207,7 @@ Aptos-Aura-Weaver/
 ## Live Demo & Contract Info
 
 - **Live App**: [https://alokumarjaiswal.github.io/Aptos-Aura-Weaver](https://alokumarjaiswal.github.io/Aptos-Aura-Weaver)
-- **📜 Contract Address**: `0x0b65f8046e689981c490d760553a03b9d11775d03d78c141d6a44041c3b12a43`
+- **Contract Address**: `0x0b65f8046e689981c490d760553a03b9d11775d03d78c141d6a44041c3b12a43`
 - **Network**: Aptos Devnet (Switch wallet to Devnet)
 - **Gas**: ~0.001-0.01 APT per mint (use faucet for test tokens)
 
@@ -231,7 +231,7 @@ Aptos-Aura-Weaver/
 - Local image generation (no server-side processing)
 - Transparent on-chain metadata
 
-## 🔧 Advanced Configuration
+## Advanced Configuration
 
 ### **Network Switching**
 ```typescript
