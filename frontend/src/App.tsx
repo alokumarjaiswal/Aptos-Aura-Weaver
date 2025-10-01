@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useWallet } from '@aptos-labs/wallet-adapter-react';
 import { WalletProvider } from './WalletProvider';
 import { AppProvider } from './contexts/AppContext';
@@ -17,10 +17,55 @@ const getBasename = () => {
   return '';
 };
 
+// SEO Helper: Update page titles dynamically
+const updatePageTitle = (pathname: string) => {
+  const basename = getBasename();
+  const route = pathname.replace(basename, '') || '/';
+  
+  const titles: Record<string, string> = {
+    '/': 'Aptos Aura Weaver - Generate Personalized NFTs from Blockchain Activity | Web3 Art Generator',
+    '/wallet': 'Connect Wallet - Aptos Aura Weaver | Petra Wallet Integration for NFT Generation',
+    '/aura': 'Generate Your Aura - Create Unique NFT Art | Aptos Aura Weaver Generative Engine'
+  };
+
+  const metaDescriptions: Record<string, string> = {
+    '/': 'Transform your Aptos blockchain activity into unique generative art NFTs. Connect wallet, create personalized auras, and mint on-chain. Free Web3 NFT generator with rarity scoring.',
+    '/wallet': 'Connect your Petra wallet to Aptos Aura Weaver and start creating personalized NFT art based on your blockchain transaction history.',
+    '/aura': 'Generate your unique aura visualization using advanced p5.js algorithms. Mint your personalized generative art as an NFT on the Aptos blockchain.'
+  };
+
+  // Update title
+  document.title = titles[route] || titles['/'];
+  
+  // Update meta description
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    metaDescription.setAttribute('content', metaDescriptions[route] || metaDescriptions['/']);
+  }
+  
+  // Update Open Graph title
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) {
+    ogTitle.setAttribute('content', titles[route] || titles['/']);
+  }
+  
+  // Update Open Graph description
+  const ogDescription = document.querySelector('meta[property="og:description"]');
+  if (ogDescription) {
+    ogDescription.setAttribute('content', metaDescriptions[route] || metaDescriptions['/']);
+  }
+};
+
 // Component to handle navigation based on wallet state
 const AppRoutes: React.FC = () => {
   const { connected } = useWallet();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Update SEO meta tags when route changes
+  useEffect(() => {
+    updatePageTitle(location.pathname);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (connected) {
