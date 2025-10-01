@@ -1,19 +1,19 @@
 {
-  "name": "Aptos Aura Weaver - Personalized NFT Generator",
+  "name": "Aptos Aura Weaver - Generate Personalized NFTs from Blockchain Activity",
   "short_name": "Aura Weaver",
-  "description": "Generate your personalized aura NFT based on your on-chain activity. Beautiful, smooth, and uniquely yours.",
+  "description": "Transform your Aptos blockchain activity into unique generative art NFTs. Connect wallet, create personalized auras, and mint on-chain with rarity scoring.",
   "icons": [
     {
       "src": "favicon/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "favicon/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "favicon/favicon-96x96.png",
@@ -23,10 +23,37 @@
     }
   ],
   "start_url": "./",
+  "scope": "./",
   "theme_color": "#007AFF",
   "background_color": "#000000",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "categories": ["productivity", "utilities", "finance"],
-  "lang": "en"
+  "categories": ["productivity", "utilities", "finance", "entertainment"],
+  "lang": "en",
+  "dir": "ltr",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "screenshots": [
+    {
+      "src": "app-screenshot.png",
+      "sizes": "1200x800",
+      "type": "image/png",
+      "label": "Aptos Aura Weaver main interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Generate Aura",
+      "short_name": "Generate",
+      "description": "Quick access to aura generation",
+      "url": "./aura",
+      "icons": [
+        {
+          "src": "favicon/favicon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
